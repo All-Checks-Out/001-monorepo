@@ -1,0 +1,42 @@
+{
+  "name": "root",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.8.0",
+  "scripts": {
+    "verify": "pnpm -r --if-present lint && pnpm -r --if-present type-check && pnpm -r --if-present test && pnpm -r --if-present build",
+    "verify:ci": "pnpm install --frozen-lockfile && pnpm verify",
+    "install:macos": "bash scripts/install-flyway-and-pgadmin-macos.sh",
+    "app": "bash scripts/root-command.sh app",
+    "backend": "bash scripts/root-command.sh backend",
+    "service": "bash scripts/root-command.sh service",
+    "database": "bash scripts/root-command.sh database",
+    "data": "bash scripts/root-command.sh data",
+    "dev": "bash scripts/root-command.sh dev",
+    "dev:local": "bash scripts/root-command.sh dev local",
+    "preview": "bash scripts/root-command.sh preview",
+    "preview:local": "bash scripts/root-command.sh preview local",
+    "generate-env": "bash scripts/root-command.sh generate-env",
+    "deploy": "bash scripts/root-command.sh deploy",
+    "destroy": "bash scripts/root-command.sh destroy",
+    "url": "bash scripts/root-command.sh url",
+    "start:local": "bash scripts/local-start.sh",
+    "stop:local": "bash scripts/local-stop.sh",
+    "build": "pnpm -r build",
+    "docker:up": "bash scripts/local-docker-up.sh",
+    "docker:down": "bash scripts/local-docker-down.sh",
+    "docker:up:local": "bash scripts/local-docker-up.sh",
+    "docker:down:local": "bash scripts/local-docker-down.sh",
+    "bootstrap-up": "bash scripts/root-command.sh bootstrap-up",
+    "bootstrap-down": "bash scripts/root-command.sh bootstrap-down",
+    "dns-zone-up": "bash scripts/root-command.sh dns-zone-up",
+    "org-redirect-up": "bash scripts/root-command.sh org-redirect-up",
+    "org-redirect-down": "bash scripts/root-command.sh org-redirect-down",
+    "type-check": "pnpm -r type-check",
+    "package-cleanup": "pnpm -r package-cleanup && rm -rf node_modules",
+    "claude:review": "node scripts/claude-review.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.27.7"
+  }
+}

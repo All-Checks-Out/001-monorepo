@@ -1,0 +1,50 @@
+{
+  "name": "@apps/shell",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "deploy:local": "pnpm run generate-env && pnpm run build",
+    "destroy:local": "echo \"No local shell infrastructure to destroy.\"",
+    "type-check": "tsc --noEmit && tsc --noEmit -p cdk/tsconfig.json",
+    "package-cleanup": "rm -rf node_modules dist cdk.out",
+    "dev": "bash ../../scripts/generate-ui-env.sh && vite --port 5173",
+    "dns-zone-up": "cdk deploy dns-zone-management --require-approval never --app \"tsx ./cdk/src/bin/dnsZone.ts\"",
+    "org-redirect-up": "cdk deploy org-redirect-management --require-approval never --app \"tsx ./cdk/src/bin/orgRedirect.ts\"",
+    "org-redirect-down": "cdk destroy org-redirect-management --force --require-approval never --app \"tsx ./cdk/src/bin/orgRedirect.ts\"",
+    "deploy:infra": "cdk deploy ui-stack-$ACO24_STAGE --require-approval never --app \"tsx ./cdk/src/bin/website.ts\" --context stage=$ACO24_STAGE",
+    "generate-env": "bash ../../scripts/generate-ui-env.sh",
+    "upload": "AWS_PROFILE=management bash scripts/upload-shell-app.sh",
+    "invalidate-cloudfront": "AWS_PROFILE=management bash scripts/invalidate-shell-app.sh",
+    "invalidate-all-cloudfront": "AWS_PROFILE=management bash scripts/invalidate-cloudfront.sh",
+    "empty-bucket": "AWS_PROFILE=management bash scripts/empty-ui-bucket.sh",
+    "url": "AWS_PROFILE=management bash scripts/get-ui-url.sh",
+    "deploy": "pnpm run generate-env && pnpm run build && pnpm run upload && pnpm run invalidate-cloudfront",
+    "destroy": "cdk destroy ui-stack-$ACO24_STAGE --force --require-approval never --app \"tsx ./cdk/src/bin/website.ts\" --context stage=$ACO24_STAGE"
+  },
+  "dependencies": {
+    "@frontend/api": "workspace:*",
+    "@frontend/auth": "workspace:*",
+    "@frontend/shadcn": "workspace:*",
+    "@shared/permissions": "workspace:*",
+    "@module-federation/bridge-react": "^2.6.0",
+    "@module-federation/vite": "^1.16.11",
+    "lucide-react": "^0.575.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "7.13.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^25.3.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "aws-cdk-lib": "2.235.1",
+    "constructs": "10.4.5",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vite": "^7.3.1"
+  }
+}

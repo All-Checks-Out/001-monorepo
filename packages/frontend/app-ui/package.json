@@ -1,0 +1,22 @@
+{
+  "name": "@frontend/app-ui",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./data-display/AppDataTable": "./src/data-display/AppDataTable.tsx"
+  },
+  "dependencies": {
+    "@frontend/shadcn": "workspace:*",
+    "@tanstack/react-table": "^8.21.3",
+    "lucide-react": "^0.575.0",
+    "react": "^19.0.0"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "package-cleanup": "rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "5.9.3"
+  }
+}

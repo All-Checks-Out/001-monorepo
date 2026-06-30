@@ -1,0 +1,25 @@
+{
+  "name": "@services/cognito-service",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "type-check": "tsc --noEmit && tsc --noEmit -p cdk/tsconfig.json",
+    "package-cleanup": "rm -rf node_modules cdk.out",
+    "deploy": "cdk deploy cognito-stack-$ACO24_STAGE --require-approval never --app \"tsx ./cdk/src/bin/cognito.ts\" --context stage=$ACO24_STAGE",
+    "destroy": "cdk destroy cognito-stack-$ACO24_STAGE --force --require-approval never --app \"tsx ./cdk/src/bin/cognito.ts\" --context stage=$ACO24_STAGE"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.1063.0",
+    "@aws-sdk/client-ssm": "^3.1063.0",
+    "aws-cdk-lib": "2.235.1",
+    "constructs": "10.4.5"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
+    "@types/node": "^25.9.1",
+    "esbuild": "0.27.7",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

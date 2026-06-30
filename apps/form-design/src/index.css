@@ -1,0 +1,7 @@
+@import "@frontend/shadcn/styles.css";
+
+@source "./";
+@source "../../../packages/frontend/shadcn/src";
+@source "../../../packages/frontend/app-ui/src";
+@source "../../../packages/frontend/auth/src";
+@source "../../../packages/frontend/api/src";

@@ -1,0 +1,41 @@
+{
+  "name": "@apps/form-design",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "preview": "vite preview --port 4175",
+    "deploy:local": "pnpm run generate-env && pnpm run build",
+    "destroy:local": "echo \"No local form-design infrastructure to destroy.\"",
+    "type-check": "tsc --noEmit",
+    "package-cleanup": "rm -rf node_modules dist",
+    "dev": "bash ../../scripts/generate-ui-env.sh && vite --port 5175",
+    "generate-env": "bash ../../scripts/generate-ui-env.sh",
+    "upload": "AWS_PROFILE=management bash scripts/upload-route-app.sh",
+    "invalidate-cloudfront": "AWS_PROFILE=management bash scripts/invalidate-route-app.sh",
+    "deploy": "pnpm run generate-env && pnpm run build && pnpm run upload && pnpm run invalidate-cloudfront"
+  },
+  "dependencies": {
+    "@frontend/app-ui": "workspace:*",
+    "@frontend/api": "workspace:*",
+    "@frontend/auth": "workspace:*",
+    "@frontend/shadcn": "workspace:*",
+    "@shared/permissions": "workspace:*",
+    "@module-federation/bridge-react": "^2.6.0",
+    "@module-federation/vite": "^1.16.11",
+    "@tanstack/react-table": "^8.21.3",
+    "lucide-react": "^0.575.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "7.13.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^25.3.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "5.9.3",
+    "vite": "^7.3.1"
+  }
+}

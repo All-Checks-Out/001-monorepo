@@ -1,0 +1,30 @@
+{
+  "name": "@services/document-analysis-service",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "type-check": "tsc --noEmit && tsc --noEmit -p cdk/tsconfig.json",
+    "package-cleanup": "rm -rf node_modules cdk.out",
+    "deploy": "cdk deploy document-analysis-service-stack-$ACO24_STAGE --require-approval never --app \"tsx ./cdk/src/bin/documentAnalysis.ts\" --context stage=$ACO24_STAGE",
+    "destroy": "cdk destroy document-analysis-service-stack-$ACO24_STAGE --force --require-approval never --app \"tsx ./cdk/src/bin/documentAnalysis.ts\" --context stage=$ACO24_STAGE"
+  },
+  "dependencies": {
+    "@backend/events": "workspace:*",
+    "@aws-sdk/client-eventbridge": "^3.1063.0",
+    "@aws-sdk/client-rekognition": "^3.1063.0",
+    "@aws-sdk/client-secrets-manager": "^3.1063.0",
+    "@aws-sdk/client-ssm": "^3.1063.0",
+    "aws-cdk-lib": "2.235.1",
+    "constructs": "10.4.5",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
+    "@types/node": "^25.9.1",
+    "@types/pg": "^8.15.6",
+    "esbuild": "0.27.7",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

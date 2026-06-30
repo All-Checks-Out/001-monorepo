@@ -1,0 +1,8 @@
+{
+  "name": "@root/scripts",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "package-cleanup": "rm -rf node_modules"
+  }
+}

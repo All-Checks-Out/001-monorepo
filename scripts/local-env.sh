@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+export APP_ENV=local
+export DATABASE_NAME=uptickart
+export CDK_DATABASE_NAME="$DATABASE_NAME"
+export DATABASE_HOST=localhost
+export DATABASE_PORT=5432
+export DATABASE_USER=postgres
+export DATABASE_PASSWORD=postgres
+export DATABASE_SSL=false
+export POSTGRES_CONTAINER_NAME=aco002-local-postgres
+export POSTGRES_VOLUME_NAME=aco002-local-postgres-data
+export POSTGRES_IMAGE=postgres:17
+export MINIO_CONTAINER_NAME=aco012-local-minio
+export MINIO_VOLUME_NAME=aco012-local-minio-data
+export MINIO_IMAGE=minio/minio:RELEASE.2025-09-07T16-13-09Z
+export MINIO_CONSOLE_PORT=9001
+export S3_ENDPOINT=http://localhost:9000
+export EVIDENCE_BUCKET_NAME=aco012-local-evidence
+export EVIDENCE_CLOUDFRONT_URL="$S3_ENDPOINT/$EVIDENCE_BUCKET_NAME"
+export AWS_REGION=eu-west-2
+export AWS_ACCESS_KEY_ID=minioadmin
+export AWS_SECRET_ACCESS_KEY=minioadmin

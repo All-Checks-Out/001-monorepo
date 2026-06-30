@@ -1,0 +1,19 @@
+packages:
+  - "apps/shell"
+  - "apps/core"
+  - "apps/form-design"
+  - "scripts"
+  - "services/cognito-service"
+  - "services/document-analysis-service"
+  - "services/onboarding-service"
+  - "packages/backend/events"
+  - "packages/shared/permissions"
+  - "packages/frontend/api"
+  - "packages/frontend/app-ui"
+  - "packages/frontend/auth"
+  - "packages/frontend/tailwind"
+  - "packages/frontend/tokens"
+  - "packages/frontend/shadcn"
+allowBuilds:
+  esbuild: true
+  msw: true

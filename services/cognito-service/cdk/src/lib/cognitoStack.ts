@@ -1,0 +1,87 @@
+import {
+  CfnOutput,
+  RemovalPolicy,
+  Stack,
+  type StackProps,
+} from "aws-cdk-lib";
+import {
+  CfnManagedLoginBranding,
+  OAuthScope,
+  UserPool,
+} from "aws-cdk-lib/aws-cognito";
+import { StringParameter } from "aws-cdk-lib/aws-ssm";
+import type { Construct } from "constructs";
+import type { DeploymentStage } from "./deploymentConfig.js";
+
+interface CognitoStackProps extends StackProps {
+  stage: DeploymentStage;
+  websiteUrl: string;
+}
+
+export class CognitoStack extends Stack {
+  constructor(scope: Construct, id: string, props: CognitoStackProps) {
+    super(scope, id, props);
+
+    const callbackUrls = [
+      "http://localhost:5173/core/callback",
+      `${props.websiteUrl}/core/callback`,
+    ];
+    const logoutUrls = ["http://localhost:5173", props.websiteUrl];
+
+    const userPool = new UserPool(this, "UserPool", {
+      removalPolicy: RemovalPolicy.DESTROY,
+      signInAliases: { email: true },
+      autoVerify: { email: true },
+      selfSignUpEnabled: false,
+    });
+
+    const userPoolDomain = userPool.addDomain("UserPoolDomain", {
+      cognitoDomain: {
+        domainPrefix: `aco24-${props.stage}-${this.account}-${this.region}`,
+      },
+      managedLoginVersion: 2,
+    });
+
+    const userPoolClient = userPool.addClient("UserPoolClient", {
+      authFlows: {
+        adminUserPassword: true,
+        userSrp: true,
+      },
+      oAuth: {
+        flows: { authorizationCodeGrant: true },
+        scopes: [OAuthScope.OPENID, OAuthScope.EMAIL],
+        callbackUrls,
+        logoutUrls,
+      },
+      generateSecret: false,
+    });
+
+    new CfnManagedLoginBranding(this, "ManagedLoginBranding", {
+      userPoolId: userPool.userPoolId,
+      clientId: userPoolClient.userPoolClientId,
+      useCognitoProvidedValues: true,
+    });
+
+    const cognitoDomainUrl = `https://${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`;
+
+    new StringParameter(this, "CognitoDomainParameter", {
+      parameterName: "/cognito/domain",
+      stringValue: cognitoDomainUrl,
+    });
+
+    new StringParameter(this, "CognitoClientIdParameter", {
+      parameterName: "/cognito/client-id",
+      stringValue: userPoolClient.userPoolClientId,
+    });
+
+    new StringParameter(this, "CognitoUserPoolIdParameter", {
+      parameterName: "/cognito/user-pool-id",
+      stringValue: userPool.userPoolId,
+    });
+
+    new CfnOutput(this, "CognitoDomainUrl", { value: cognitoDomainUrl });
+    new CfnOutput(this, "CognitoClientId", {
+      value: userPoolClient.userPoolClientId,
+    });
+  }
+}

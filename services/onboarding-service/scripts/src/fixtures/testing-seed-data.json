@@ -1,0 +1,3222 @@
+{
+  "exportedAt": "2026-06-22T00:00:00.000Z",
+  "sourceStage": "testing",
+  "corporations": [
+    {
+      "legacyId": 1,
+      "name": "Association",
+      "type": "ASSOCIATION",
+      "status": "approved"
+    },
+    {
+      "legacyId": 2,
+      "name": "Uptick IT Platform",
+      "type": "PROVIDER",
+      "status": "approved"
+    },
+    {
+      "legacyId": 3,
+      "name": "Happy to Help Agency",
+      "type": "AGENT",
+      "status": "approved"
+    },
+    {
+      "legacyId": 4,
+      "name": "Always on the Lookout",
+      "type": "STAKEHOLDER",
+      "status": "approved"
+    }
+  ],
+  "users": [
+    {
+      "legacyId": 1,
+      "corporationLegacyId": 1,
+      "email": "prudence.paperwork@example.test",
+      "status": "invited",
+      "permissions": [
+        "provider-requests:read",
+        "provider-requests:approve",
+        "system-data:read",
+        "users:read",
+        "users:invite",
+        "user-permissions:change",
+        "ddq-packs:read",
+        "ddq-packs:edit",
+        "forms:read",
+        "forms:edit"
+      ]
+    },
+    {
+      "legacyId": 2,
+      "corporationLegacyId": 2,
+      "email": "arthur.uptick@example.test",
+      "status": "invited",
+      "permissions": [
+        "agent-requests:read",
+        "agent-requests:approve",
+        "stakeholder-requests:read",
+        "stakeholder-requests:approve",
+        "users:read",
+        "users:invite",
+        "user-permissions:change",
+        "ddq-packs:add-new",
+        "ddq-packs:perform-checks",
+        "ddq-packs:review-checks",
+        "ddq-packs:approve-checks"
+      ]
+    },
+    {
+      "legacyId": 3,
+      "corporationLegacyId": 2,
+      "email": "tess.ticketplease@example.test",
+      "status": "invited",
+      "permissions": [
+        "ddq-packs:add-new",
+        "ddq-packs:perform-checks",
+        "ddq-packs:review-checks"
+      ]
+    },
+    {
+      "legacyId": 4,
+      "corporationLegacyId": 3,
+      "email": "albert.allegedly@example.test",
+      "status": "invited",
+      "permissions": [
+        "users:read",
+        "users:invite",
+        "user-permissions:change"
+      ]
+    },
+    {
+      "legacyId": 5,
+      "corporationLegacyId": 3,
+      "email": "flora.formsfirst@example.test",
+      "status": "invited",
+      "permissions": []
+    },
+    {
+      "legacyId": 6,
+      "corporationLegacyId": 4,
+      "email": "barbara.binoculars@example.test",
+      "status": "invited",
+      "permissions": [
+        "users:read",
+        "users:invite",
+        "user-permissions:change"
+      ]
+    },
+    {
+      "legacyId": 7,
+      "corporationLegacyId": 4,
+      "email": "simon.squinting@example.test",
+      "status": "invited",
+      "permissions": []
+    },
+    {
+      "legacyId": 8,
+      "corporationLegacyId": 1,
+      "email": "miles.minutes@example.test",
+      "status": "invited",
+      "permissions": [
+        "provider-requests:read",
+        "system-data:read",
+        "ddq-packs:read",
+        "ddq-packs:edit"
+      ]
+    }
+  ],
+  "corporationApplications": [
+    {
+      "legacyId": 1,
+      "name": "Uptick IT Platform",
+      "type": "PROVIDER",
+      "applicantEmail": "arthur.uptick@example.test",
+      "status": "approved",
+      "providerCorporationLegacyId": null
+    },
+    {
+      "legacyId": 2,
+      "name": "Happy to Help Agency",
+      "type": "AGENT",
+      "applicantEmail": "albert.allegedly@example.test",
+      "status": "approved",
+      "providerCorporationLegacyId": 2
+    },
+    {
+      "legacyId": 3,
+      "name": "Always on the Lookout",
+      "type": "STAKEHOLDER",
+      "applicantEmail": "barbara.binoculars@example.test",
+      "status": "approved",
+      "providerCorporationLegacyId": 2
+    }
+  ],
+  "corporationAccessRequests": [
+    {
+      "legacyId": 1,
+      "requesterCorporationLegacyId": 3,
+      "providerCorporationLegacyId": 2,
+      "status": "approved"
+    },
+    {
+      "legacyId": 2,
+      "requesterCorporationLegacyId": 4,
+      "providerCorporationLegacyId": 2,
+      "status": "approved"
+    }
+  ],
+  "ddqPacks": [
+    {
+      "legacyId": 1,
+      "name": "Identity Papers, Please and Thank You",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 101,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload passport identity page",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 102,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete ownership declaration",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "supplier small talk",
+                "description": "Questions for establishing rapport with exactly the right amount of paperwork.",
+                "items": [
+                  {
+                    "id": "form-template-001-item-001",
+                    "type": "text",
+                    "label": "Preferred supplier name, including any dramatic capitalisation",
+                    "helpText": "We will try to respect the typography.",
+                    "required": true,
+                    "placeholder": "Example & Sons Ltd"
+                  },
+                  {
+                    "id": "form-template-001-item-002",
+                    "type": "textarea",
+                    "label": "Describe your organisation in one paragraph and no interpretive dance",
+                    "helpText": "A little charm is acceptable. Smoke machines are not.",
+                    "required": true,
+                    "placeholder": "We provide..."
+                  },
+                  {
+                    "id": "form-template-001-item-003",
+                    "type": "date",
+                    "label": "Date the relationship became official-ish",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-004",
+                    "type": "phone",
+                    "label": "Phone number for someone who answers calmly",
+                    "required": true,
+                    "placeholder": "+44..."
+                  },
+                  {
+                    "id": "form-template-001-item-005",
+                    "type": "select",
+                    "label": "Current paperwork temperature",
+                    "options": [
+                      "Tepid",
+                      "Brisk",
+                      "Boiling but manageable"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-006",
+                    "type": "radio",
+                    "label": "Preferred meeting energy",
+                    "options": [
+                      "Agenda-led",
+                      "Lightly improvised",
+                      "Could have been an email"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-007",
+                    "type": "boolean",
+                    "label": "Can you provide documents without naming them final_final_v3",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 103,
+          "position": 3,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Identity documents reviewed",
+          "config": {}
+        },
+        {
+          "legacyId": 104,
+          "position": 4,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload current profile photo",
+          "config": {}
+        },
+        {
+          "legacyId": 105,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload driving licence backup",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 106,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Identity pack ready for sign-off",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 2,
+      "name": "The Spreadsheet of Mild Foreboding",
+      "validFrom": "2026-02-01",
+      "validTo": "2027-01-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 201,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete financial controls questionnaire",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "office biscuit resilience",
+                "description": "A sober operational assessment of snacks, shortages, and morale.",
+                "items": [
+                  {
+                    "id": "form-template-002-item-001",
+                    "type": "text",
+                    "label": "Primary biscuit custodian",
+                    "helpText": "The person with cupboard knowledge.",
+                    "required": true,
+                    "placeholder": "Name and title"
+                  },
+                  {
+                    "id": "form-template-002-item-002",
+                    "type": "textarea",
+                    "label": "Explain the emergency biscuit replenishment process",
+                    "helpText": "Include escalation paths if chocolate digestives are involved.",
+                    "required": true,
+                    "placeholder": "When stocks fall below..."
+                  },
+                  {
+                    "id": "form-template-002-item-003",
+                    "type": "date",
+                    "label": "Last time the tin was audited",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-004",
+                    "type": "phone",
+                    "label": "After-hours snack incident contact",
+                    "required": false,
+                    "placeholder": "Do not abuse this privilege"
+                  },
+                  {
+                    "id": "form-template-002-item-005",
+                    "type": "select",
+                    "label": "Biscuit continuity rating",
+                    "options": [
+                      "Robust",
+                      "Patchy",
+                      "Everyone is pretending rice cakes count"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-002-item-006",
+                    "type": "radio",
+                    "label": "Most likely biscuit failure mode",
+                    "options": [
+                      "Procurement delay",
+                      "Meeting overrun",
+                      "One person with no chill"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-007",
+                    "type": "boolean",
+                    "label": "Is there a documented dunking policy",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 202,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload audited accounts",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 203,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload premises verification photo",
+          "config": {}
+        },
+        {
+          "legacyId": 204,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Finance evidence looks plausible",
+          "config": {}
+        },
+        {
+          "legacyId": 205,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload insurance certificate",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 206,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Numbers have stopped moving",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 3,
+      "name": "Selfie With the Compliance Clock",
+      "validFrom": "2026-03-01",
+      "validTo": "2027-02-28",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 301,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload time-stamped site photo",
+          "config": {}
+        },
+        {
+          "legacyId": 302,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload head and shoulders photo ID",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 303,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete on-site attestation",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "color quiz",
+                "description": "tell us about your favourite colour",
+                "items": [
+                  {
+                    "id": "1c56377b-4015-44a8-97a7-e44ebda29a43",
+                    "type": "text",
+                    "label": "Please tell us your faviourite color",
+                    "helpText": "red blue and green are nice",
+                    "required": true,
+                    "placeholder": "choose your faviourite color"
+                  },
+                  {
+                    "id": "56f45206-456a-49c2-84de-cbdef7dc301a",
+                    "type": "textarea",
+                    "label": "Please write us a short essay on the history of your relationship with your favourite colour and why you like it so much today",
+                    "helpText": "Good, good, good citations please.",
+                    "required": true,
+                    "placeholder": "your colourful affair starts here"
+                  },
+                  {
+                    "id": "c6890eba-db68-4e13-bff7-2a9e5b1ee669",
+                    "type": "date",
+                    "label": "Date of birth",
+                    "required": true
+                  },
+                  {
+                    "id": "adea42ee-2956-49ec-8cd4-19b805f11aed",
+                    "type": "phone",
+                    "label": "phone number",
+                    "required": true
+                  },
+                  {
+                    "id": "7e36b356-c2d8-47e4-b7cb-2150cf4aba52",
+                    "type": "select",
+                    "label": "three favourite colours",
+                    "options": [
+                      "red",
+                      "yellow",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "6a05a047-1495-41a5-a240-31876bec8853",
+                    "type": "radio",
+                    "label": "three favourite colors",
+                    "options": [
+                      "red",
+                      "green",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "c0d54a46-6441-4826-a92b-db2041b7bc67",
+                    "type": "boolean",
+                    "label": "is red your favourite color",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 304,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Visual evidence accepted",
+          "config": {}
+        },
+        {
+          "legacyId": 305,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload supporting location evidence",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 306,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "The camera has done its duty",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 4,
+      "name": "Formidable Forms and Other Weather",
+      "validFrom": "2026-04-01",
+      "validTo": "2027-03-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 401,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete service continuity form",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "meeting room weather report",
+                "description": "Captures climate, mood, and the strange politics of the good chair.",
+                "items": [
+                  {
+                    "id": "form-template-004-item-001",
+                    "type": "text",
+                    "label": "Meeting room name, as it appears on the booking system",
+                    "helpText": "We know everyone calls it something else.",
+                    "required": true,
+                    "placeholder": "Room 3B / The Aquarium"
+                  },
+                  {
+                    "id": "form-template-004-item-002",
+                    "type": "textarea",
+                    "label": "Summarise the room's usual emotional climate",
+                    "helpText": "Please distinguish stuffy from existential.",
+                    "required": true,
+                    "placeholder": "The room is..."
+                  },
+                  {
+                    "id": "form-template-004-item-003",
+                    "type": "date",
+                    "label": "Date of most recent chair negotiation",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-004-item-004",
+                    "type": "phone",
+                    "label": "Facilities number for thermostat diplomacy",
+                    "required": false,
+                    "placeholder": "Extension or mobile"
+                  },
+                  {
+                    "id": "form-template-004-item-005",
+                    "type": "select",
+                    "label": "Default room temperature opinion",
+                    "options": [
+                      "Too hot",
+                      "Too cold",
+                      "Somehow both"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-004-item-006",
+                    "type": "radio",
+                    "label": "Projector behaviour under pressure",
+                    "options": [
+                      "Reliable",
+                      "Moody",
+                      "Requires a small ceremony"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-004-item-007",
+                    "type": "boolean",
+                    "label": "Does the room contain at least one pen that works",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 402,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload business continuity plan",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 403,
+          "position": 3,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Continuity evidence checked",
+          "config": {}
+        },
+        {
+          "legacyId": 404,
+          "position": 4,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload backup site photo",
+          "config": {}
+        },
+        {
+          "legacyId": 405,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload responsible officer ID",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 406,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Continuity forecast: mostly acceptable",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 5,
+      "name": "Passport to Nowhere In Particular",
+      "validFrom": "2025-01-01",
+      "validTo": "2025-12-31",
+      "status": "archived",
+      "items": [
+        {
+          "legacyId": 501,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload primary passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 502,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload secondary address evidence",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 503,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete historic eligibility form",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "policy drawer archaeology",
+                "description": "For cataloguing documents found behind other, more confident documents.",
+                "items": [
+                  {
+                    "id": "form-template-005-item-001",
+                    "type": "text",
+                    "label": "Document title, including any bracketed apologies",
+                    "helpText": "Examples: draft, old, newer, use this one.",
+                    "required": true,
+                    "placeholder": "Policy name"
+                  },
+                  {
+                    "id": "form-template-005-item-002",
+                    "type": "textarea",
+                    "label": "Describe why this document was hiding",
+                    "helpText": "Speculation is allowed if clearly marked as office folklore.",
+                    "required": false,
+                    "placeholder": "It appears to have..."
+                  },
+                  {
+                    "id": "form-template-005-item-003",
+                    "type": "date",
+                    "label": "Date printed, if the footer is telling the truth",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-005-item-004",
+                    "type": "phone",
+                    "label": "Person brave enough to claim ownership",
+                    "required": false,
+                    "placeholder": "Name or number"
+                  },
+                  {
+                    "id": "form-template-005-item-005",
+                    "type": "select",
+                    "label": "Document smell",
+                    "options": [
+                      "Fresh toner",
+                      "Archive cupboard",
+                      "Unclear but concerning"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-005-item-006",
+                    "type": "radio",
+                    "label": "Recommended next action",
+                    "options": [
+                      "Keep",
+                      "Review",
+                      "Quietly supersede"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-005-item-007",
+                    "type": "boolean",
+                    "label": "Has this policy survived at least one rebrand",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 504,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Historic ID trail reviewed",
+          "config": {}
+        },
+        {
+          "legacyId": 505,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload archived likeness photo",
+          "config": {}
+        },
+        {
+          "legacyId": 506,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Old process peacefully filed away",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 6,
+      "name": "The Archive Awakens",
+      "validFrom": "2025-06-01",
+      "validTo": "2026-05-31",
+      "status": "archived",
+      "items": [
+        {
+          "legacyId": 601,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete retrospective supplier form",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "supplier small talk",
+                "description": "Questions for establishing rapport with exactly the right amount of paperwork.",
+                "items": [
+                  {
+                    "id": "form-template-001-item-001",
+                    "type": "text",
+                    "label": "Preferred supplier name, including any dramatic capitalisation",
+                    "helpText": "We will try to respect the typography.",
+                    "required": true,
+                    "placeholder": "Example & Sons Ltd"
+                  },
+                  {
+                    "id": "form-template-001-item-002",
+                    "type": "textarea",
+                    "label": "Describe your organisation in one paragraph and no interpretive dance",
+                    "helpText": "A little charm is acceptable. Smoke machines are not.",
+                    "required": true,
+                    "placeholder": "We provide..."
+                  },
+                  {
+                    "id": "form-template-001-item-003",
+                    "type": "date",
+                    "label": "Date the relationship became official-ish",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-004",
+                    "type": "phone",
+                    "label": "Phone number for someone who answers calmly",
+                    "required": true,
+                    "placeholder": "+44..."
+                  },
+                  {
+                    "id": "form-template-001-item-005",
+                    "type": "select",
+                    "label": "Current paperwork temperature",
+                    "options": [
+                      "Tepid",
+                      "Brisk",
+                      "Boiling but manageable"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-006",
+                    "type": "radio",
+                    "label": "Preferred meeting energy",
+                    "options": [
+                      "Agenda-led",
+                      "Lightly improvised",
+                      "Could have been an email"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-007",
+                    "type": "boolean",
+                    "label": "Can you provide documents without naming them final_final_v3",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 602,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload legacy contract",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 603,
+          "position": 3,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Legacy evidence located",
+          "config": {}
+        },
+        {
+          "legacyId": 604,
+          "position": 4,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload storage location photo",
+          "config": {}
+        },
+        {
+          "legacyId": 605,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload signatory driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 606,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Archive has had its say",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 7,
+      "name": "The Great Upload Kerfuffle",
+      "validFrom": "2026-05-01",
+      "validTo": "2027-04-30",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 701,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload operating licence",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 702,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload equipment photo",
+          "config": {}
+        },
+        {
+          "legacyId": 703,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete incident response form",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "office biscuit resilience",
+                "description": "A sober operational assessment of snacks, shortages, and morale.",
+                "items": [
+                  {
+                    "id": "form-template-002-item-001",
+                    "type": "text",
+                    "label": "Primary biscuit custodian",
+                    "helpText": "The person with cupboard knowledge.",
+                    "required": true,
+                    "placeholder": "Name and title"
+                  },
+                  {
+                    "id": "form-template-002-item-002",
+                    "type": "textarea",
+                    "label": "Explain the emergency biscuit replenishment process",
+                    "helpText": "Include escalation paths if chocolate digestives are involved.",
+                    "required": true,
+                    "placeholder": "When stocks fall below..."
+                  },
+                  {
+                    "id": "form-template-002-item-003",
+                    "type": "date",
+                    "label": "Last time the tin was audited",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-004",
+                    "type": "phone",
+                    "label": "After-hours snack incident contact",
+                    "required": false,
+                    "placeholder": "Do not abuse this privilege"
+                  },
+                  {
+                    "id": "form-template-002-item-005",
+                    "type": "select",
+                    "label": "Biscuit continuity rating",
+                    "options": [
+                      "Robust",
+                      "Patchy",
+                      "Everyone is pretending rice cakes count"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-002-item-006",
+                    "type": "radio",
+                    "label": "Most likely biscuit failure mode",
+                    "options": [
+                      "Procurement delay",
+                      "Meeting overrun",
+                      "One person with no chill"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-007",
+                    "type": "boolean",
+                    "label": "Is there a documented dunking policy",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 704,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Uploads are no longer surprising",
+          "config": {}
+        },
+        {
+          "legacyId": 705,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload nominated contact ID",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 706,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Kerfuffle contained",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 8,
+      "name": "Checkpoint Charlie's Cousin",
+      "validFrom": "2026-06-01",
+      "validTo": "2027-05-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 801,
+          "position": 1,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Start only if caffeine has happened",
+          "config": {}
+        },
+        {
+          "legacyId": 802,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload access control policy",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 803,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete personnel screening form",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "color quiz",
+                "description": "tell us about your favourite colour",
+                "items": [
+                  {
+                    "id": "1c56377b-4015-44a8-97a7-e44ebda29a43",
+                    "type": "text",
+                    "label": "Please tell us your faviourite color",
+                    "helpText": "red blue and green are nice",
+                    "required": true,
+                    "placeholder": "choose your faviourite color"
+                  },
+                  {
+                    "id": "56f45206-456a-49c2-84de-cbdef7dc301a",
+                    "type": "textarea",
+                    "label": "Please write us a short essay on the history of your relationship with your favourite colour and why you like it so much today",
+                    "helpText": "Good, good, good citations please.",
+                    "required": true,
+                    "placeholder": "your colourful affair starts here"
+                  },
+                  {
+                    "id": "c6890eba-db68-4e13-bff7-2a9e5b1ee669",
+                    "type": "date",
+                    "label": "Date of birth",
+                    "required": true
+                  },
+                  {
+                    "id": "adea42ee-2956-49ec-8cd4-19b805f11aed",
+                    "type": "phone",
+                    "label": "phone number",
+                    "required": true
+                  },
+                  {
+                    "id": "7e36b356-c2d8-47e4-b7cb-2150cf4aba52",
+                    "type": "select",
+                    "label": "three favourite colours",
+                    "options": [
+                      "red",
+                      "yellow",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "6a05a047-1495-41a5-a240-31876bec8853",
+                    "type": "radio",
+                    "label": "three favourite colors",
+                    "options": [
+                      "red",
+                      "green",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "c0d54a46-6441-4826-a92b-db2041b7bc67",
+                    "type": "boolean",
+                    "label": "is red your favourite color",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 804,
+          "position": 4,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload secure entrance photo",
+          "config": {}
+        },
+        {
+          "legacyId": 805,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload site manager ID",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 806,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Crossing approved",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 9,
+      "name": "Draft Dodger's Delight",
+      "validFrom": "2026-07-01",
+      "validTo": "2027-06-30",
+      "status": "draft",
+      "items": [
+        {
+          "legacyId": 901,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload draft specimen document",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 902,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete not-quite-ready questionnaire",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "meeting room weather report",
+                "description": "Captures climate, mood, and the strange politics of the good chair.",
+                "items": [
+                  {
+                    "id": "form-template-004-item-001",
+                    "type": "text",
+                    "label": "Meeting room name, as it appears on the booking system",
+                    "helpText": "We know everyone calls it something else.",
+                    "required": true,
+                    "placeholder": "Room 3B / The Aquarium"
+                  },
+                  {
+                    "id": "form-template-004-item-002",
+                    "type": "textarea",
+                    "label": "Summarise the room's usual emotional climate",
+                    "helpText": "Please distinguish stuffy from existential.",
+                    "required": true,
+                    "placeholder": "The room is..."
+                  },
+                  {
+                    "id": "form-template-004-item-003",
+                    "type": "date",
+                    "label": "Date of most recent chair negotiation",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-004-item-004",
+                    "type": "phone",
+                    "label": "Facilities number for thermostat diplomacy",
+                    "required": false,
+                    "placeholder": "Extension or mobile"
+                  },
+                  {
+                    "id": "form-template-004-item-005",
+                    "type": "select",
+                    "label": "Default room temperature opinion",
+                    "options": [
+                      "Too hot",
+                      "Too cold",
+                      "Somehow both"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-004-item-006",
+                    "type": "radio",
+                    "label": "Projector behaviour under pressure",
+                    "options": [
+                      "Reliable",
+                      "Moody",
+                      "Requires a small ceremony"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-004-item-007",
+                    "type": "boolean",
+                    "label": "Does the room contain at least one pen that works",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 903,
+          "position": 3,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Draft thoughts collected",
+          "config": {}
+        },
+        {
+          "legacyId": 904,
+          "position": 4,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload placeholder inspection photo",
+          "config": {}
+        },
+        {
+          "legacyId": 905,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload draft identity evidence",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 906,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Draft remains charmingly unfinished",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 10,
+      "name": "No Surprises, Except These Questions",
+      "validFrom": "2026-08-01",
+      "validTo": "2027-07-31",
+      "status": "draft",
+      "items": [
+        {
+          "legacyId": 1001,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete draft risk questions",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "policy drawer archaeology",
+                "description": "For cataloguing documents found behind other, more confident documents.",
+                "items": [
+                  {
+                    "id": "form-template-005-item-001",
+                    "type": "text",
+                    "label": "Document title, including any bracketed apologies",
+                    "helpText": "Examples: draft, old, newer, use this one.",
+                    "required": true,
+                    "placeholder": "Policy name"
+                  },
+                  {
+                    "id": "form-template-005-item-002",
+                    "type": "textarea",
+                    "label": "Describe why this document was hiding",
+                    "helpText": "Speculation is allowed if clearly marked as office folklore.",
+                    "required": false,
+                    "placeholder": "It appears to have..."
+                  },
+                  {
+                    "id": "form-template-005-item-003",
+                    "type": "date",
+                    "label": "Date printed, if the footer is telling the truth",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-005-item-004",
+                    "type": "phone",
+                    "label": "Person brave enough to claim ownership",
+                    "required": false,
+                    "placeholder": "Name or number"
+                  },
+                  {
+                    "id": "form-template-005-item-005",
+                    "type": "select",
+                    "label": "Document smell",
+                    "options": [
+                      "Fresh toner",
+                      "Archive cupboard",
+                      "Unclear but concerning"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-005-item-006",
+                    "type": "radio",
+                    "label": "Recommended next action",
+                    "options": [
+                      "Keep",
+                      "Review",
+                      "Quietly supersede"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-005-item-007",
+                    "type": "boolean",
+                    "label": "Has this policy survived at least one rebrand",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1002,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload draft risk evidence",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1003,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload draft evidence photo",
+          "config": {}
+        },
+        {
+          "legacyId": 1004,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Questions remain admirably preliminary",
+          "config": {}
+        },
+        {
+          "legacyId": 1005,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload draft reviewer ID",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1006,
+          "position": 6,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "No surprises formally postponed",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 11,
+      "name": "Annual Assurance Without the Drumroll",
+      "validFrom": "2025-01-01",
+      "validTo": "2030-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1101,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete annual assurance questionnaire",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "supplier small talk",
+                "description": "Questions for establishing rapport with exactly the right amount of paperwork.",
+                "items": [
+                  {
+                    "id": "form-template-001-item-001",
+                    "type": "text",
+                    "label": "Preferred supplier name, including any dramatic capitalisation",
+                    "helpText": "We will try to respect the typography.",
+                    "required": true,
+                    "placeholder": "Example & Sons Ltd"
+                  },
+                  {
+                    "id": "form-template-001-item-002",
+                    "type": "textarea",
+                    "label": "Describe your organisation in one paragraph and no interpretive dance",
+                    "helpText": "A little charm is acceptable. Smoke machines are not.",
+                    "required": true,
+                    "placeholder": "We provide..."
+                  },
+                  {
+                    "id": "form-template-001-item-003",
+                    "type": "date",
+                    "label": "Date the relationship became official-ish",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-004",
+                    "type": "phone",
+                    "label": "Phone number for someone who answers calmly",
+                    "required": true,
+                    "placeholder": "+44..."
+                  },
+                  {
+                    "id": "form-template-001-item-005",
+                    "type": "select",
+                    "label": "Current paperwork temperature",
+                    "options": [
+                      "Tepid",
+                      "Brisk",
+                      "Boiling but manageable"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-006",
+                    "type": "radio",
+                    "label": "Preferred meeting energy",
+                    "options": [
+                      "Agenda-led",
+                      "Lightly improvised",
+                      "Could have been an email"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-007",
+                    "type": "boolean",
+                    "label": "Can you provide documents without naming them final_final_v3",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1102,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload assurance lead passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1103,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload assurance deputy driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1104,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Annual assurance evidence checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1105,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload assurance contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1106,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload current insurance schedule",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1107,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload annual assurance site photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 12,
+      "name": "Cyber Controls and Sensible Locks",
+      "validFrom": "2025-01-01",
+      "validTo": "2030-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1201,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete access controls questionnaire",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "office biscuit resilience",
+                "description": "A sober operational assessment of snacks, shortages, and morale.",
+                "items": [
+                  {
+                    "id": "form-template-002-item-001",
+                    "type": "text",
+                    "label": "Primary biscuit custodian",
+                    "helpText": "The person with cupboard knowledge.",
+                    "required": true,
+                    "placeholder": "Name and title"
+                  },
+                  {
+                    "id": "form-template-002-item-002",
+                    "type": "textarea",
+                    "label": "Explain the emergency biscuit replenishment process",
+                    "helpText": "Include escalation paths if chocolate digestives are involved.",
+                    "required": true,
+                    "placeholder": "When stocks fall below..."
+                  },
+                  {
+                    "id": "form-template-002-item-003",
+                    "type": "date",
+                    "label": "Last time the tin was audited",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-004",
+                    "type": "phone",
+                    "label": "After-hours snack incident contact",
+                    "required": false,
+                    "placeholder": "Do not abuse this privilege"
+                  },
+                  {
+                    "id": "form-template-002-item-005",
+                    "type": "select",
+                    "label": "Biscuit continuity rating",
+                    "options": [
+                      "Robust",
+                      "Patchy",
+                      "Everyone is pretending rice cakes count"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-002-item-006",
+                    "type": "radio",
+                    "label": "Most likely biscuit failure mode",
+                    "options": [
+                      "Procurement delay",
+                      "Meeting overrun",
+                      "One person with no chill"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-007",
+                    "type": "boolean",
+                    "label": "Is there a documented dunking policy",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1202,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload security owner passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1203,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload security delegate driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1204,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Cyber controls checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1205,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload security contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1206,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload cyber security policy",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1207,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload secure operations room photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 13,
+      "name": "Continuity Plans for Unshowy Heroes",
+      "validFrom": "2025-01-01",
+      "validTo": "2030-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1301,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete continuity readiness questionnaire",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "color quiz",
+                "description": "tell us about your favourite colour",
+                "items": [
+                  {
+                    "id": "1c56377b-4015-44a8-97a7-e44ebda29a43",
+                    "type": "text",
+                    "label": "Please tell us your faviourite color",
+                    "helpText": "red blue and green are nice",
+                    "required": true,
+                    "placeholder": "choose your faviourite color"
+                  },
+                  {
+                    "id": "56f45206-456a-49c2-84de-cbdef7dc301a",
+                    "type": "textarea",
+                    "label": "Please write us a short essay on the history of your relationship with your favourite colour and why you like it so much today",
+                    "helpText": "Good, good, good citations please.",
+                    "required": true,
+                    "placeholder": "your colourful affair starts here"
+                  },
+                  {
+                    "id": "c6890eba-db68-4e13-bff7-2a9e5b1ee669",
+                    "type": "date",
+                    "label": "Date of birth",
+                    "required": true
+                  },
+                  {
+                    "id": "adea42ee-2956-49ec-8cd4-19b805f11aed",
+                    "type": "phone",
+                    "label": "phone number",
+                    "required": true
+                  },
+                  {
+                    "id": "7e36b356-c2d8-47e4-b7cb-2150cf4aba52",
+                    "type": "select",
+                    "label": "three favourite colours",
+                    "options": [
+                      "red",
+                      "yellow",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "6a05a047-1495-41a5-a240-31876bec8853",
+                    "type": "radio",
+                    "label": "three favourite colors",
+                    "options": [
+                      "red",
+                      "green",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "c0d54a46-6441-4826-a92b-db2041b7bc67",
+                    "type": "boolean",
+                    "label": "is red your favourite color",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1302,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload continuity lead passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1303,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload continuity deputy driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1304,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Continuity evidence checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1305,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload continuity contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1306,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload business continuity exercise report",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1307,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload alternate site evidence photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 14,
+      "name": "Financial Fitness Without Jazz Hands",
+      "validFrom": "2025-01-01",
+      "validTo": "2030-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1401,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete financial resilience questionnaire",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "meeting room weather report",
+                "description": "Captures climate, mood, and the strange politics of the good chair.",
+                "items": [
+                  {
+                    "id": "form-template-004-item-001",
+                    "type": "text",
+                    "label": "Meeting room name, as it appears on the booking system",
+                    "helpText": "We know everyone calls it something else.",
+                    "required": true,
+                    "placeholder": "Room 3B / The Aquarium"
+                  },
+                  {
+                    "id": "form-template-004-item-002",
+                    "type": "textarea",
+                    "label": "Summarise the room's usual emotional climate",
+                    "helpText": "Please distinguish stuffy from existential.",
+                    "required": true,
+                    "placeholder": "The room is..."
+                  },
+                  {
+                    "id": "form-template-004-item-003",
+                    "type": "date",
+                    "label": "Date of most recent chair negotiation",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-004-item-004",
+                    "type": "phone",
+                    "label": "Facilities number for thermostat diplomacy",
+                    "required": false,
+                    "placeholder": "Extension or mobile"
+                  },
+                  {
+                    "id": "form-template-004-item-005",
+                    "type": "select",
+                    "label": "Default room temperature opinion",
+                    "options": [
+                      "Too hot",
+                      "Too cold",
+                      "Somehow both"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-004-item-006",
+                    "type": "radio",
+                    "label": "Projector behaviour under pressure",
+                    "options": [
+                      "Reliable",
+                      "Moody",
+                      "Requires a small ceremony"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-004-item-007",
+                    "type": "boolean",
+                    "label": "Does the room contain at least one pen that works",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1402,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload finance lead passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1403,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload finance deputy driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1404,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Financial evidence checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1405,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload finance contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1406,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload latest management accounts",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1407,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload finance office evidence photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 15,
+      "name": "People Screening and Proper Badges",
+      "validFrom": "2025-01-01",
+      "validTo": "2030-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1501,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete workforce screening declaration",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "policy drawer archaeology",
+                "description": "For cataloguing documents found behind other, more confident documents.",
+                "items": [
+                  {
+                    "id": "form-template-005-item-001",
+                    "type": "text",
+                    "label": "Document title, including any bracketed apologies",
+                    "helpText": "Examples: draft, old, newer, use this one.",
+                    "required": true,
+                    "placeholder": "Policy name"
+                  },
+                  {
+                    "id": "form-template-005-item-002",
+                    "type": "textarea",
+                    "label": "Describe why this document was hiding",
+                    "helpText": "Speculation is allowed if clearly marked as office folklore.",
+                    "required": false,
+                    "placeholder": "It appears to have..."
+                  },
+                  {
+                    "id": "form-template-005-item-003",
+                    "type": "date",
+                    "label": "Date printed, if the footer is telling the truth",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-005-item-004",
+                    "type": "phone",
+                    "label": "Person brave enough to claim ownership",
+                    "required": false,
+                    "placeholder": "Name or number"
+                  },
+                  {
+                    "id": "form-template-005-item-005",
+                    "type": "select",
+                    "label": "Document smell",
+                    "options": [
+                      "Fresh toner",
+                      "Archive cupboard",
+                      "Unclear but concerning"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-005-item-006",
+                    "type": "radio",
+                    "label": "Recommended next action",
+                    "options": [
+                      "Keep",
+                      "Review",
+                      "Quietly supersede"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-005-item-007",
+                    "type": "boolean",
+                    "label": "Has this policy survived at least one rebrand",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1502,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload nominated compliance lead passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1503,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload nominated HR lead driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1504,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "People screening checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1505,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload screening contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1506,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload workforce screening policy",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1507,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload staffed reception area photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 16,
+      "name": "Last Year's Policies in a Neat Pile",
+      "validFrom": "2024-01-01",
+      "validTo": "2024-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1601,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete 2024 governance attestation",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "supplier small talk",
+                "description": "Questions for establishing rapport with exactly the right amount of paperwork.",
+                "items": [
+                  {
+                    "id": "form-template-001-item-001",
+                    "type": "text",
+                    "label": "Preferred supplier name, including any dramatic capitalisation",
+                    "helpText": "We will try to respect the typography.",
+                    "required": true,
+                    "placeholder": "Example & Sons Ltd"
+                  },
+                  {
+                    "id": "form-template-001-item-002",
+                    "type": "textarea",
+                    "label": "Describe your organisation in one paragraph and no interpretive dance",
+                    "helpText": "A little charm is acceptable. Smoke machines are not.",
+                    "required": true,
+                    "placeholder": "We provide..."
+                  },
+                  {
+                    "id": "form-template-001-item-003",
+                    "type": "date",
+                    "label": "Date the relationship became official-ish",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-004",
+                    "type": "phone",
+                    "label": "Phone number for someone who answers calmly",
+                    "required": true,
+                    "placeholder": "+44..."
+                  },
+                  {
+                    "id": "form-template-001-item-005",
+                    "type": "select",
+                    "label": "Current paperwork temperature",
+                    "options": [
+                      "Tepid",
+                      "Brisk",
+                      "Boiling but manageable"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-006",
+                    "type": "radio",
+                    "label": "Preferred meeting energy",
+                    "options": [
+                      "Agenda-led",
+                      "Lightly improvised",
+                      "Could have been an email"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-001-item-007",
+                    "type": "boolean",
+                    "label": "Can you provide documents without naming them final_final_v3",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1602,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 governance owner passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1603,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 governance deputy driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1604,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "2024 governance evidence checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1605,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 governance contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1606,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 governance policy",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1607,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload 2024 governance site photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 17,
+      "name": "The 2024 Supplier Memory Box",
+      "validFrom": "2024-01-01",
+      "validTo": "2024-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1701,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete 2024 supplier declaration",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "office biscuit resilience",
+                "description": "A sober operational assessment of snacks, shortages, and morale.",
+                "items": [
+                  {
+                    "id": "form-template-002-item-001",
+                    "type": "text",
+                    "label": "Primary biscuit custodian",
+                    "helpText": "The person with cupboard knowledge.",
+                    "required": true,
+                    "placeholder": "Name and title"
+                  },
+                  {
+                    "id": "form-template-002-item-002",
+                    "type": "textarea",
+                    "label": "Explain the emergency biscuit replenishment process",
+                    "helpText": "Include escalation paths if chocolate digestives are involved.",
+                    "required": true,
+                    "placeholder": "When stocks fall below..."
+                  },
+                  {
+                    "id": "form-template-002-item-003",
+                    "type": "date",
+                    "label": "Last time the tin was audited",
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-004",
+                    "type": "phone",
+                    "label": "After-hours snack incident contact",
+                    "required": false,
+                    "placeholder": "Do not abuse this privilege"
+                  },
+                  {
+                    "id": "form-template-002-item-005",
+                    "type": "select",
+                    "label": "Biscuit continuity rating",
+                    "options": [
+                      "Robust",
+                      "Patchy",
+                      "Everyone is pretending rice cakes count"
+                    ],
+                    "required": true
+                  },
+                  {
+                    "id": "form-template-002-item-006",
+                    "type": "radio",
+                    "label": "Most likely biscuit failure mode",
+                    "options": [
+                      "Procurement delay",
+                      "Meeting overrun",
+                      "One person with no chill"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "form-template-002-item-007",
+                    "type": "boolean",
+                    "label": "Is there a documented dunking policy",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1702,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 supplier owner passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1703,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 supplier manager driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1704,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "2024 supplier evidence checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1705,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 supplier contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1706,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 supplier register",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1707,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload 2024 supplier premises photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    },
+    {
+      "legacyId": 18,
+      "name": "Expired But Still Very Organised",
+      "validFrom": "2024-01-01",
+      "validTo": "2024-12-31",
+      "status": "published",
+      "items": [
+        {
+          "legacyId": 1801,
+          "position": 1,
+          "kind": "ddq-task",
+          "taskType": "form-completion",
+          "title": "Complete 2024 site assurance form",
+          "config": {
+            "form": {
+              "kind": "form-document",
+              "version": 1,
+              "definition": {
+                "title": "color quiz",
+                "description": "tell us about your favourite colour",
+                "items": [
+                  {
+                    "id": "1c56377b-4015-44a8-97a7-e44ebda29a43",
+                    "type": "text",
+                    "label": "Please tell us your faviourite color",
+                    "helpText": "red blue and green are nice",
+                    "required": true,
+                    "placeholder": "choose your faviourite color"
+                  },
+                  {
+                    "id": "56f45206-456a-49c2-84de-cbdef7dc301a",
+                    "type": "textarea",
+                    "label": "Please write us a short essay on the history of your relationship with your favourite colour and why you like it so much today",
+                    "helpText": "Good, good, good citations please.",
+                    "required": true,
+                    "placeholder": "your colourful affair starts here"
+                  },
+                  {
+                    "id": "c6890eba-db68-4e13-bff7-2a9e5b1ee669",
+                    "type": "date",
+                    "label": "Date of birth",
+                    "required": true
+                  },
+                  {
+                    "id": "adea42ee-2956-49ec-8cd4-19b805f11aed",
+                    "type": "phone",
+                    "label": "phone number",
+                    "required": true
+                  },
+                  {
+                    "id": "7e36b356-c2d8-47e4-b7cb-2150cf4aba52",
+                    "type": "select",
+                    "label": "three favourite colours",
+                    "options": [
+                      "red",
+                      "yellow",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "6a05a047-1495-41a5-a240-31876bec8853",
+                    "type": "radio",
+                    "label": "three favourite colors",
+                    "options": [
+                      "red",
+                      "green",
+                      "blue"
+                    ],
+                    "required": false
+                  },
+                  {
+                    "id": "c0d54a46-6441-4826-a92b-db2041b7bc67",
+                    "type": "boolean",
+                    "label": "is red your favourite color",
+                    "required": true
+                  }
+                ]
+              },
+              "values": {}
+            }
+          }
+        },
+        {
+          "legacyId": 1802,
+          "position": 2,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 site manager passport",
+          "config": {
+            "document_type": "passport"
+          }
+        },
+        {
+          "legacyId": 1803,
+          "position": 3,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 site deputy driving licence",
+          "config": {
+            "document_type": "driving-license"
+          }
+        },
+        {
+          "legacyId": 1804,
+          "position": 4,
+          "kind": "checkpoint",
+          "taskType": null,
+          "title": "Expired site assurance checkpoint",
+          "config": {}
+        },
+        {
+          "legacyId": 1805,
+          "position": 5,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 site contact head-and-shoulders photo",
+          "config": {
+            "document_type": "head-and-shoulders-photo"
+          }
+        },
+        {
+          "legacyId": 1806,
+          "position": 6,
+          "kind": "ddq-task",
+          "taskType": "document-upload",
+          "title": "Upload 2024 site assurance certificate",
+          "config": {
+            "document_type": "other"
+          }
+        },
+        {
+          "legacyId": 1807,
+          "position": 7,
+          "kind": "ddq-task",
+          "taskType": "photo-upload",
+          "title": "Upload 2024 site verification photo",
+          "config": {}
+        }
+      ],
+      "associationCorporationLegacyId": 1
+    }
+  ],
+  "formTemplates": [
+    {
+      "legacyId": 1,
+      "associationCorporationLegacyId": 1,
+      "shortName": "supplier small talk",
+      "description": "Questions for establishing rapport with exactly the right amount of paperwork.",
+      "schema": {
+        "version": 1,
+        "items": [
+          {
+            "id": "form-template-001-item-001",
+            "type": "text",
+            "label": "Preferred supplier name, including any dramatic capitalisation",
+            "helpText": "We will try to respect the typography.",
+            "required": true,
+            "placeholder": "Example & Sons Ltd"
+          },
+          {
+            "id": "form-template-001-item-002",
+            "type": "textarea",
+            "label": "Describe your organisation in one paragraph and no interpretive dance",
+            "helpText": "A little charm is acceptable. Smoke machines are not.",
+            "required": true,
+            "placeholder": "We provide..."
+          },
+          {
+            "id": "form-template-001-item-003",
+            "type": "date",
+            "label": "Date the relationship became official-ish",
+            "required": false
+          },
+          {
+            "id": "form-template-001-item-004",
+            "type": "phone",
+            "label": "Phone number for someone who answers calmly",
+            "required": true,
+            "placeholder": "+44..."
+          },
+          {
+            "id": "form-template-001-item-005",
+            "type": "select",
+            "label": "Current paperwork temperature",
+            "options": [
+              "Tepid",
+              "Brisk",
+              "Boiling but manageable"
+            ],
+            "required": false
+          },
+          {
+            "id": "form-template-001-item-006",
+            "type": "radio",
+            "label": "Preferred meeting energy",
+            "options": [
+              "Agenda-led",
+              "Lightly improvised",
+              "Could have been an email"
+            ],
+            "required": false
+          },
+          {
+            "id": "form-template-001-item-007",
+            "type": "boolean",
+            "label": "Can you provide documents without naming them final_final_v3",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "legacyId": 2,
+      "associationCorporationLegacyId": 1,
+      "shortName": "office biscuit resilience",
+      "description": "A sober operational assessment of snacks, shortages, and morale.",
+      "schema": {
+        "version": 1,
+        "items": [
+          {
+            "id": "form-template-002-item-001",
+            "type": "text",
+            "label": "Primary biscuit custodian",
+            "helpText": "The person with cupboard knowledge.",
+            "required": true,
+            "placeholder": "Name and title"
+          },
+          {
+            "id": "form-template-002-item-002",
+            "type": "textarea",
+            "label": "Explain the emergency biscuit replenishment process",
+            "helpText": "Include escalation paths if chocolate digestives are involved.",
+            "required": true,
+            "placeholder": "When stocks fall below..."
+          },
+          {
+            "id": "form-template-002-item-003",
+            "type": "date",
+            "label": "Last time the tin was audited",
+            "required": false
+          },
+          {
+            "id": "form-template-002-item-004",
+            "type": "phone",
+            "label": "After-hours snack incident contact",
+            "required": false,
+            "placeholder": "Do not abuse this privilege"
+          },
+          {
+            "id": "form-template-002-item-005",
+            "type": "select",
+            "label": "Biscuit continuity rating",
+            "options": [
+              "Robust",
+              "Patchy",
+              "Everyone is pretending rice cakes count"
+            ],
+            "required": true
+          },
+          {
+            "id": "form-template-002-item-006",
+            "type": "radio",
+            "label": "Most likely biscuit failure mode",
+            "options": [
+              "Procurement delay",
+              "Meeting overrun",
+              "One person with no chill"
+            ],
+            "required": false
+          },
+          {
+            "id": "form-template-002-item-007",
+            "type": "boolean",
+            "label": "Is there a documented dunking policy",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "legacyId": 3,
+      "associationCorporationLegacyId": 1,
+      "shortName": "color quiz",
+      "description": "tell us about your favourite colour",
+      "schema": {
+        "version": 1,
+        "items": [
+          {
+            "id": "1c56377b-4015-44a8-97a7-e44ebda29a43",
+            "type": "text",
+            "label": "Please tell us your faviourite color",
+            "helpText": "red blue and green are nice",
+            "required": true,
+            "placeholder": "choose your faviourite color"
+          },
+          {
+            "id": "56f45206-456a-49c2-84de-cbdef7dc301a",
+            "type": "textarea",
+            "label": "Please write us a short essay on the history of your relationship with your favourite colour and why you like it so much today",
+            "helpText": "Good, good, good citations please.",
+            "required": true,
+            "placeholder": "your colourful affair starts here"
+          },
+          {
+            "id": "c6890eba-db68-4e13-bff7-2a9e5b1ee669",
+            "type": "date",
+            "label": "Date of birth",
+            "required": true
+          },
+          {
+            "id": "adea42ee-2956-49ec-8cd4-19b805f11aed",
+            "type": "phone",
+            "label": "phone number",
+            "required": true
+          },
+          {
+            "id": "7e36b356-c2d8-47e4-b7cb-2150cf4aba52",
+            "type": "select",
+            "label": "three favourite colours",
+            "options": [
+              "red",
+              "yellow",
+              "blue"
+            ],
+            "required": false
+          },
+          {
+            "id": "6a05a047-1495-41a5-a240-31876bec8853",
+            "type": "radio",
+            "label": "three favourite colors",
+            "options": [
+              "red",
+              "green",
+              "blue"
+            ],
+            "required": false
+          },
+          {
+            "id": "c0d54a46-6441-4826-a92b-db2041b7bc67",
+            "type": "boolean",
+            "label": "is red your favourite color",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "legacyId": 4,
+      "associationCorporationLegacyId": 1,
+      "shortName": "meeting room weather report",
+      "description": "Captures climate, mood, and the strange politics of the good chair.",
+      "schema": {
+        "version": 1,
+        "items": [
+          {
+            "id": "form-template-004-item-001",
+            "type": "text",
+            "label": "Meeting room name, as it appears on the booking system",
+            "helpText": "We know everyone calls it something else.",
+            "required": true,
+            "placeholder": "Room 3B / The Aquarium"
+          },
+          {
+            "id": "form-template-004-item-002",
+            "type": "textarea",
+            "label": "Summarise the room's usual emotional climate",
+            "helpText": "Please distinguish stuffy from existential.",
+            "required": true,
+            "placeholder": "The room is..."
+          },
+          {
+            "id": "form-template-004-item-003",
+            "type": "date",
+            "label": "Date of most recent chair negotiation",
+            "required": false
+          },
+          {
+            "id": "form-template-004-item-004",
+            "type": "phone",
+            "label": "Facilities number for thermostat diplomacy",
+            "required": false,
+            "placeholder": "Extension or mobile"
+          },
+          {
+            "id": "form-template-004-item-005",
+            "type": "select",
+            "label": "Default room temperature opinion",
+            "options": [
+              "Too hot",
+              "Too cold",
+              "Somehow both"
+            ],
+            "required": true
+          },
+          {
+            "id": "form-template-004-item-006",
+            "type": "radio",
+            "label": "Projector behaviour under pressure",
+            "options": [
+              "Reliable",
+              "Moody",
+              "Requires a small ceremony"
+            ],
+            "required": false
+          },
+          {
+            "id": "form-template-004-item-007",
+            "type": "boolean",
+            "label": "Does the room contain at least one pen that works",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "legacyId": 5,
+      "associationCorporationLegacyId": 1,
+      "shortName": "policy drawer archaeology",
+      "description": "For cataloguing documents found behind other, more confident documents.",
+      "schema": {
+        "version": 1,
+        "items": [
+          {
+            "id": "form-template-005-item-001",
+            "type": "text",
+            "label": "Document title, including any bracketed apologies",
+            "helpText": "Examples: draft, old, newer, use this one.",
+            "required": true,
+            "placeholder": "Policy name"
+          },
+          {
+            "id": "form-template-005-item-002",
+            "type": "textarea",
+            "label": "Describe why this document was hiding",
+            "helpText": "Speculation is allowed if clearly marked as office folklore.",
+            "required": false,
+            "placeholder": "It appears to have..."
+          },
+          {
+            "id": "form-template-005-item-003",
+            "type": "date",
+            "label": "Date printed, if the footer is telling the truth",
+            "required": false
+          },
+          {
+            "id": "form-template-005-item-004",
+            "type": "phone",
+            "label": "Person brave enough to claim ownership",
+            "required": false,
+            "placeholder": "Name or number"
+          },
+          {
+            "id": "form-template-005-item-005",
+            "type": "select",
+            "label": "Document smell",
+            "options": [
+              "Fresh toner",
+              "Archive cupboard",
+              "Unclear but concerning"
+            ],
+            "required": false
+          },
+          {
+            "id": "form-template-005-item-006",
+            "type": "radio",
+            "label": "Recommended next action",
+            "options": [
+              "Keep",
+              "Review",
+              "Quietly supersede"
+            ],
+            "required": true
+          },
+          {
+            "id": "form-template-005-item-007",
+            "type": "boolean",
+            "label": "Has this policy survived at least one rebrand",
+            "required": true
+          }
+        ]
+      }
+    }
+  ],
+  "providerDDQPacks": [
+    {
+      "legacyId": 1,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 1
+    },
+    {
+      "legacyId": 2,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 2
+    },
+    {
+      "legacyId": 3,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 3
+    },
+    {
+      "legacyId": 4,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 4
+    },
+    {
+      "legacyId": 5,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 5
+    },
+    {
+      "legacyId": 6,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 6
+    },
+    {
+      "legacyId": 7,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 7
+    },
+    {
+      "legacyId": 8,
+      "providerCorporationLegacyId": 2,
+      "ddqPackLegacyId": 8
+    }
+  ],
+  "providerDDQChecklists": [
+    {
+      "legacyId": 1,
+      "providerDDQPackLegacyId": 1,
+      "status": "active",
+      "tasks": [
+        {
+          "ddqPackItemLegacyId": 101,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 102,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 103,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 104,
+          "status": "withdrawn"
+        },
+        {
+          "ddqPackItemLegacyId": 105,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 106,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "legacyId": 2,
+      "providerDDQPackLegacyId": 2,
+      "status": "completed",
+      "tasks": [
+        {
+          "ddqPackItemLegacyId": 201,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 202,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 203,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 204,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 205,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 206,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "legacyId": 3,
+      "providerDDQPackLegacyId": 3,
+      "status": "withdrawn",
+      "tasks": [
+        {
+          "ddqPackItemLegacyId": 301,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 302,
+          "status": "withdrawn"
+        },
+        {
+          "ddqPackItemLegacyId": 303,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 304,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 305,
+          "status": "withdrawn"
+        },
+        {
+          "ddqPackItemLegacyId": 306,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "legacyId": 4,
+      "providerDDQPackLegacyId": 4,
+      "status": "active",
+      "tasks": [
+        {
+          "ddqPackItemLegacyId": 401,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 402,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 403,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 404,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 405,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 406,
+          "status": "withdrawn"
+        }
+      ]
+    },
+    {
+      "legacyId": 5,
+      "providerDDQPackLegacyId": 5,
+      "status": "completed",
+      "tasks": [
+        {
+          "ddqPackItemLegacyId": 501,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 502,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 503,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 504,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 505,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 506,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "legacyId": 6,
+      "providerDDQPackLegacyId": 6,
+      "status": "withdrawn",
+      "tasks": [
+        {
+          "ddqPackItemLegacyId": 601,
+          "status": "withdrawn"
+        },
+        {
+          "ddqPackItemLegacyId": 602,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 603,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 604,
+          "status": "withdrawn"
+        },
+        {
+          "ddqPackItemLegacyId": 605,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 606,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "legacyId": 7,
+      "providerDDQPackLegacyId": 7,
+      "status": "active",
+      "tasks": [
+        {
+          "ddqPackItemLegacyId": 701,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 702,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 703,
+          "status": "active"
+        },
+        {
+          "ddqPackItemLegacyId": 704,
+          "status": "completed"
+        },
+        {
+          "ddqPackItemLegacyId": 705,
+          "status": "withdrawn"
+        },
+        {
+          "ddqPackItemLegacyId": 706,
+          "status": "active"
+        }
+      ]
+    }
+  ]
+}
