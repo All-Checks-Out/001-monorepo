@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getPermissionsForCorporationType, type CorporationType } from "@shared/permissions";
 import type { CurrentUserContext } from "./currentUser";
 import type { DDQPackItemRow, DDQPackRow, Permission } from "../database/onboardingTypes";
 import { createDbClient } from "../database/db";
@@ -133,9 +134,80 @@ describe("provider DDQ pack permissions", () => {
     expect(getDDQPack).not.toHaveBeenCalled();
     expect(listDDQPackItems).not.toHaveBeenCalled();
   });
+
+  it("enforces provider-ddq-packs:add-new for all corporation user types", async () => {
+    const operations = [
+      {
+        run: (context: CurrentUserContext) => getAvailableProviderDDQPacks(context),
+        assertCalled: () =>
+          expect(listAvailableProviderDDQPacks).toHaveBeenCalledWith(
+            expect.anything(),
+            200,
+          ),
+      },
+      {
+        run: (context: CurrentUserContext) =>
+          getProviderDDQPackItems(context, providerPack.id),
+        assertCalled: () =>
+          expect(listDDQPackItems).toHaveBeenCalledWith(
+            expect.anything(),
+            providerPack.id,
+          ),
+      },
+    ];
+
+    for (const corporationType of corporationTypes) {
+      for (const operation of operations) {
+        vi.clearAllMocks();
+        resetRepositoryMocks();
+
+        const allowedContext = userContext(
+          corporationType,
+          getPermissionsForCorporationType(corporationType),
+        );
+        const shouldAllow = corporationType === "PROVIDER";
+
+        if (shouldAllow) {
+          await expect(operation.run(allowedContext)).resolves.toBeTruthy();
+          operation.assertCalled();
+        } else {
+          await expect(operation.run(allowedContext)).rejects.toMatchObject({
+            status: 403,
+            message: "Permission required.",
+          });
+          expect(createDbClient).not.toHaveBeenCalled();
+        }
+
+        vi.clearAllMocks();
+        resetRepositoryMocks();
+
+        await expect(
+          operation.run(userContext(corporationType, [])),
+        ).rejects.toMatchObject({
+          status: 403,
+          message: "Permission required.",
+        });
+        expect(createDbClient).not.toHaveBeenCalled();
+      }
+    }
+  });
 });
 
+const corporationTypes: CorporationType[] = [
+  "ASSOCIATION",
+  "PROVIDER",
+  "AGENT",
+  "STAKEHOLDER",
+];
+
 function providerContext(permissions: Permission[]): CurrentUserContext {
+  return userContext("PROVIDER", permissions);
+}
+
+function userContext(
+  corporationType: CorporationType,
+  permissions: readonly Permission[],
+): CurrentUserContext {
   return {
     user: {
       id: 100,
@@ -143,13 +215,22 @@ function providerContext(permissions: Permission[]): CurrentUserContext {
       cognito_sub: "provider-user",
       email: "provider@example.test",
       status: "active",
-      permissions,
+      permissions: [...permissions],
     },
     corporation: {
       id: 200,
-      name: "Provider Corp",
-      type: "PROVIDER",
+      name: `${corporationType} Corp`,
+      type: corporationType,
       status: "approved",
     },
   };
+}
+
+function resetRepositoryMocks() {
+  vi.mocked(createDbClient).mockResolvedValue({
+    end: vi.fn(),
+  } as never);
+  vi.mocked(getDDQPack).mockResolvedValue(providerPack);
+  vi.mocked(listAvailableProviderDDQPacks).mockResolvedValue([providerPack]);
+  vi.mocked(listDDQPackItems).mockResolvedValue([providerPackItem]);
 }

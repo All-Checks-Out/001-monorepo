@@ -1,5 +1,5 @@
 import { useTheme } from "@frontend/auth/session/ThemeProvider";
-import type { Permission } from "@shared/permissions";
+import type { CorporationType, Permission } from "@shared/permissions";
 import { useEffect, type ReactNode } from "react";
 import { Route, Routes } from "react-router-dom";
 import PermissionRequired from "./components/PermissionRequired";
@@ -23,15 +23,20 @@ import ProviderSetupRequests from "./pages/ProviderSetupRequests";
 import UsersPage from "./pages/UsersPage";
 
 type GuardOptions = {
+  corporationTypes?: CorporationType[];
   title?: string;
 };
 
 const guard = (
-  permission: Permission,
+  permissions: Permission,
   element: ReactNode,
-  { title }: GuardOptions = {},
+  { corporationTypes, title }: GuardOptions = {},
 ) => (
-  <PermissionRequired permission={permission} title={title}>
+  <PermissionRequired
+    permissions={permissions}
+    corporationTypes={corporationTypes}
+    title={title}
+  >
     {element}
   </PermissionRequired>
 );
@@ -39,9 +44,13 @@ const guard = (
 const guardAny = (
   permissions: Permission[],
   element: ReactNode,
-  { title }: GuardOptions = {},
+  { corporationTypes, title }: GuardOptions = {},
 ) => (
-  <PermissionRequired permissions={permissions} title={title}>
+  <PermissionRequired
+    permissions={{ anyOf: permissions }}
+    corporationTypes={corporationTypes}
+    title={title}
+  >
     {element}
   </PermissionRequired>
 );
@@ -49,9 +58,23 @@ const guardAny = (
 const guardAll = (
   permissions: Permission[],
   element: ReactNode,
+  { corporationTypes, title }: GuardOptions = {},
+) => (
+  <PermissionRequired
+    permissions={{ allOf: permissions }}
+    corporationTypes={corporationTypes}
+    title={title}
+  >
+    {element}
+  </PermissionRequired>
+);
+
+const guardCorporation = (
+  corporationTypes: CorporationType[],
+  element: ReactNode,
   { title }: GuardOptions = {},
 ) => (
-  <PermissionRequired permissions={permissions} requireAll title={title}>
+  <PermissionRequired corporationTypes={corporationTypes} title={title}>
     {element}
   </PermissionRequired>
 );
@@ -78,6 +101,7 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
         element={guard(
           "association-provider-requests:read",
           <AssociationProviders />,
+          { corporationTypes: ["ASSOCIATION"] },
         )}
       />
       <Route
@@ -85,40 +109,56 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
         element={guardAll(
           ["all-corporations:read", "all-users:read"],
           <AssociationSystemData />,
+          { corporationTypes: ["ASSOCIATION"] },
         )}
       />
       <Route
         path="association/users"
-        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, {
+          corporationTypes: ["ASSOCIATION"],
+          title: "Users",
+        })}
       />
       <Route
         path="association/access-requests"
         element={guard(
           "association-provider-requests:read",
           <AssociationAccessRequests />,
-          { title: "Access requests" },
+          { corporationTypes: ["ASSOCIATION"], title: "Access requests" },
         )}
       />
       <Route
         path="association/ddq-packs"
-        element={guard("association-ddq-packs:read", <AssociationDDQPacks />)}
+        element={guard("association-ddq-packs:read", <AssociationDDQPacks />, {
+          corporationTypes: ["ASSOCIATION"],
+        })}
       />
       <Route
         path="association/ddq-packs/:packId"
-        element={guard("association-ddq-packs:read", <AssociationDDQPackContent />)}
+        element={guard(
+          "association-ddq-packs:read",
+          <AssociationDDQPackContent />,
+          { corporationTypes: ["ASSOCIATION"] },
+        )}
       />
-      <Route path="provider/ddq-packs" element={<ProviderDDQPacks />} />
+      <Route
+        path="provider/ddq-packs"
+        element={guardCorporation(["PROVIDER"], <ProviderDDQPacks />)}
+      />
       <Route
         path="provider/ddq-packs/:packId/checklist"
-        element={<ProviderDDQChecklist />}
+        element={guardCorporation(["PROVIDER"], <ProviderDDQChecklist />)}
       />
       <Route
         path="provider/ddq-packs/:packId/checklist/tasks/:taskId"
-        element={<ProviderDDQChecklistTaskPage />}
+        element={guardCorporation(["PROVIDER"], <ProviderDDQChecklistTaskPage />)}
       />
       <Route
         path="provider/users"
-        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, {
+          corporationTypes: ["PROVIDER"],
+          title: "Users",
+        })}
       />
       <Route
         path="provider/setup-requests"
@@ -128,7 +168,7 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
             "provider-stakeholder-requests:read",
           ],
           <ProviderSetupRequests />,
-          { title: "Setup requests" },
+          { corporationTypes: ["PROVIDER"], title: "Setup requests" },
         )}
       />
       <Route
@@ -139,20 +179,38 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
             "provider-stakeholder-requests:read",
           ],
           <ProviderAccessRequests />,
-          { title: "Access requests" },
+          { corporationTypes: ["PROVIDER"], title: "Access requests" },
         )}
       />
-      <Route path="agent/providers" element={<ProviderDirectory />} />
-      <Route path="agent/requests" element={<OwnRequests />} />
+      <Route
+        path="agent/providers"
+        element={guardCorporation(["AGENT"], <ProviderDirectory />)}
+      />
+      <Route
+        path="agent/requests"
+        element={guardCorporation(["AGENT"], <OwnRequests />)}
+      />
       <Route
         path="agent/users"
-        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, {
+          corporationTypes: ["AGENT"],
+          title: "Users",
+        })}
       />
-      <Route path="stakeholder/providers" element={<ProviderDirectory />} />
-      <Route path="stakeholder/requests" element={<OwnRequests />} />
+      <Route
+        path="stakeholder/providers"
+        element={guardCorporation(["STAKEHOLDER"], <ProviderDirectory />)}
+      />
+      <Route
+        path="stakeholder/requests"
+        element={guardCorporation(["STAKEHOLDER"], <OwnRequests />)}
+      />
       <Route
         path="stakeholder/users"
-        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, {
+          corporationTypes: ["STAKEHOLDER"],
+          title: "Users",
+        })}
       />
       <Route path="*" element={<NotFound />} />
     </Routes>

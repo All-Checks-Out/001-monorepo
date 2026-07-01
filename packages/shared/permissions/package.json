@@ -7,10 +7,12 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "package-cleanup": "rm -rf node_modules"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.9"
   }
 }
