@@ -233,7 +233,7 @@ Produce a report similar to:
 | ---------------- | ------------------- | -------------------- | ------- |
 | applications.ts  | approve application | applications:approve | OK      |
 | users.ts         | delete user         | users:delete         | MISSING |
-| Provider menu    | View Users          | users:read           | OK      |
+| Provider menu    | View Users          | own-users:read       | OK      |
 | Association page | Edit Corporation    | corporation:update   | MISSING |
 
 Do not modify code during this step.

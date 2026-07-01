@@ -30,6 +30,7 @@ pnpm test
 
 At the time of writing this runs:
 
+- shared permission matrix tests
 - backend permission tests for the onboarding service
 - frontend permission tests for the core app
 
@@ -50,6 +51,7 @@ pnpm run test:frontend
 You can also run package-local test scripts directly:
 
 ```bash
+pnpm --filter @shared/permissions test
 pnpm --filter @services/onboarding-service test
 pnpm --filter @apps/core test
 ```
@@ -84,6 +86,12 @@ pnpm run verify:ci
 ```
 
 ## Current Test Commands
+
+Shared permission tests use Vitest:
+
+```bash
+pnpm --filter @shared/permissions test
+```
 
 Backend tests use Vitest:
 

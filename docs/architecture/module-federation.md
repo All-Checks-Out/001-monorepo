@@ -397,7 +397,7 @@ core/app
 form_design/app
 ```
 
-Shared packages should stay stable and intentionally owned. Use them for API contracts, auth primitives, design primitives, tokens, and other cross-app contracts. Do not move app-local workflow state, route tables, page composition, or permission wrappers into a shared package merely to remove duplication.
+Shared packages should stay stable and intentionally owned. Use them for API contracts, auth primitives, design primitives, tokens, permission policy/helpers, and other cross-app contracts. Keep app-local workflow state, route tables, page composition, and UI permission wrappers such as `PermissionRequired` inside the owning app unless there is a product-level reason to share them.
 
 ## Review Checklist
 

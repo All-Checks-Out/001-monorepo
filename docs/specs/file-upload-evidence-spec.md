@@ -172,9 +172,9 @@ For uploaded documents/photos, provide an `Open original` action that loads the 
 
 Reuse the existing checklist permissions:
 
-- `ddq-packs:perform-checks`: can execute tasks, request upload URLs, upload evidence, replace evidence, edit manual tags, and transition tasks.
-- `ddq-packs:review-checks`: can review checklist tasks read-only.
-- `ddq-packs:approve-checks`: can review checklist tasks read-only for this phase.
+- `provider-ddq-packs:perform-checks`: can execute tasks, request upload URLs, upload evidence, replace evidence, edit manual tags, and transition tasks.
+- `provider-ddq-packs:review-checks`: can review checklist tasks read-only.
+- `provider-ddq-packs:approve-checks`: can review checklist tasks read-only for this phase.
 
 Backend enforcement is authoritative. Frontend permission checks are only usability.
 
@@ -182,7 +182,7 @@ Direct access rules:
 
 - A user can only access checklist evidence for their own Provider corporation's `provider_ddq_pack`.
 - Review endpoints require any of the three checklist permissions above.
-- Mutation endpoints require `ddq-packs:perform-checks`.
+- Mutation endpoints require `provider-ddq-packs:perform-checks`.
 - Users without checklist permissions receive authorization errors from the backend.
 
 ## Storage Infrastructure
@@ -521,7 +521,7 @@ pnpm -C apps/core run build
 
 Manual QA:
 
-1. Login as a Provider user with `ddq-packs:perform-checks`.
+1. Login as a Provider user with `provider-ddq-packs:perform-checks`.
 2. Create/open a checklist containing `document-upload` and `photo-upload` tasks.
 3. Confirm row actions are icon-only and have tooltips/aria labels.
 4. Open `Execute task` for a photo task.
@@ -530,7 +530,7 @@ Manual QA:
 7. Upload and confirm the task becomes completed.
 8. Review the task and confirm preview, metadata, and tags display.
 9. Repeat with a PDF/document task.
-10. Login as a user with only `ddq-packs:review-checks`; confirm review works and upload/tag edits are disabled.
+10. Login as a user with only `provider-ddq-packs:review-checks`; confirm review works and upload/tag edits are disabled.
 11. Directly call mutation endpoints without perform permission and confirm authorization errors.
 12. Withdraw the checklist and confirm evidence mutation is blocked.
 

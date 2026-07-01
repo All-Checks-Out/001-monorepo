@@ -108,37 +108,37 @@ Association template permissions:
 
 ```ts
 type AssociationPermission =
-  | "forms:read"
-  | "forms:edit"
-  | "ddq-packs:read"
-  | "ddq-packs:edit";
+  | "association-forms:read"
+  | "association-forms:edit"
+  | "association-ddq-packs:read"
+  | "association-ddq-packs:edit";
 ```
 
 Rules:
 
-- `forms:read` can list and read form templates.
-- `forms:edit` can create, update, and delete form templates.
-- `ddq-packs:read` can view DDQ packs.
-- `ddq-packs:edit` can edit DDQ pack draft contents, including adding
+- `association-forms:read` can list and read form templates.
+- `association-forms:edit` can create, update, and delete form templates.
+- `association-ddq-packs:read` can view DDQ packs.
+- `association-ddq-packs:edit` can edit DDQ pack draft contents, including adding
   form-completion tasks.
 
 Provider checklist permissions:
 
 ```ts
 type ProviderPermission =
-  | "ddq-packs:add-new"
-  | "ddq-packs:perform-checks"
-  | "ddq-packs:review-checks"
-  | "ddq-packs:approve-checks";
+  | "provider-ddq-packs:add-new"
+  | "provider-ddq-packs:perform-checks"
+  | "provider-ddq-packs:review-checks"
+  | "provider-ddq-packs:approve-checks";
 ```
 
 Rules:
 
-- `ddq-packs:add-new` controls adding DDQ packs to the Provider pool.
-- `ddq-packs:perform-checks` can create checklists, save form responses, upload
+- `provider-ddq-packs:add-new` controls adding DDQ packs to the Provider pool.
+- `provider-ddq-packs:perform-checks` can create checklists, save form responses, upload
   evidence, and change checklist task status.
-- `ddq-packs:review-checks` can view checklists and task details read-only.
-- `ddq-packs:approve-checks` can view checklists and task details read-only for
+- `provider-ddq-packs:review-checks` can view checklists and task details read-only.
+- `provider-ddq-packs:approve-checks` can view checklists and task details read-only for
   this phase.
 - Backend authorization is authoritative. Frontend checks are usability only.
 
@@ -705,7 +705,7 @@ export type ProviderDDQChecklistTaskDetailResponse = {
 
 Server save behavior:
 
-1. Require `ddq-packs:perform-checks`.
+1. Require `provider-ddq-packs:perform-checks`.
 2. Resolve the checklist task for the current Provider corporation, pack, and
    task ID.
 3. Reject if the checklist is withdrawn.

@@ -438,7 +438,7 @@ export async function completeProviderDDQChecklistTaskFormResponse(
 
 Save behavior:
 
-1. Require `ddq-packs:perform-checks`.
+1. Require `provider-ddq-packs:perform-checks`.
 2. Resolve task with existing `readProviderDDQChecklistTaskContext`.
 3. Ensure task belongs to current Provider corporation and pack.
 4. Reject if checklist is withdrawn.
