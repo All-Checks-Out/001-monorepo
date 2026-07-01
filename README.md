@@ -187,11 +187,13 @@ unit-test:all             All Vitest tests
 
 e2e-test:frontend         Frontend Playwright browser tests
 
+e2e-test:frontend:verbose Verbose Playwright run showing tests and steps
+
 e2e-test:frontend:headed  Headed Playwright run
 
 e2e-test:frontend:debug   Debug Playwright run
 
-test:all                  All unit tests and Playwright tests
+test:all                  All unit and e2e tests
 ```
 
 ```bash
@@ -199,10 +201,13 @@ pnpm run unit-test:frontend
 pnpm run unit-test:backend
 pnpm run unit-test:all
 pnpm run e2e-test:frontend
+pnpm run e2e-test:frontend:verbose
 pnpm run e2e-test:frontend:headed
 pnpm run e2e-test:frontend:debug
 pnpm run test:all
 ```
+
+Use `e2e-test:frontend:verbose` when you want to watch the browser test progress in the terminal.
 
 Playwright-specific UI testing files live under `ui-testing/playwright/`.
 

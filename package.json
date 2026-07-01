@@ -27,6 +27,7 @@
     "unit-test:backend": "pnpm --filter @services/onboarding-service exec vitest run",
     "unit-test:all": "pnpm run unit-test:frontend && pnpm run unit-test:backend",
     "e2e-test:frontend": "bash ui-testing/playwright/scripts/run-frontend-e2e.sh",
+    "e2e-test:frontend:verbose": "bash ui-testing/playwright/scripts/run-frontend-e2e.sh --verbose",
     "e2e-test:frontend:headed": "bash ui-testing/playwright/scripts/run-frontend-e2e.sh --headed",
     "e2e-test:frontend:debug": "PWDEBUG=1 bash ui-testing/playwright/scripts/run-frontend-e2e.sh --debug",
     "test:all": "pnpm run unit-test:all && pnpm run e2e-test:frontend",

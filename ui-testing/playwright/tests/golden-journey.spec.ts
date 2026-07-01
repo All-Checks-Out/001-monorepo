@@ -20,15 +20,18 @@ test("Prudence publishes a form-backed DDQ pack and Arthur completes it", async 
   const packName = uniqueName("E2E golden pack");
   const taskTitle = "Supplier questionnaire";
 
-  await test.step("Prudence creates a reusable form", async () => {
+  await test.step("Prudence creates a reusable supplier registration form", async () => {
     await openAsAssociation(page);
     await createCustomForm(page, formName);
     await reopenForm(page, formName);
+  });
+
+  await test.step("Verify the reusable form fields were saved", async () => {
     await expect(page.getByText("Registered company name").first()).toBeVisible();
     await expect(page.getByText("Operating region").first()).toBeVisible();
   });
 
-  await test.step("Prudence builds and publishes a DDQ pack", async () => {
+  await test.step("Prudence publishes a form-backed DDQ pack", async () => {
     await createDraftPack(page, packName);
     await openPackEditor(page, packName);
     await addFormCompletionTask(page, formName, taskTitle);
@@ -38,7 +41,7 @@ test("Prudence publishes a form-backed DDQ pack and Arthur completes it", async 
     await expect(page.getByRole("button", { name: /Add item/ })).toBeVisible();
   });
 
-  await test.step("Arthur adds the published pack and completes the required form", async () => {
+  await test.step("Arthur completes and submits the required provider answers", async () => {
     await openAsProvider(page, "/core/provider/ddq-packs");
     await addPublishedPackToProvider(page, packName);
     await openProviderChecklist(page, packName);
@@ -46,7 +49,7 @@ test("Prudence publishes a form-backed DDQ pack and Arthur completes it", async 
     await completeChecklist(page, packName);
   });
 
-  await test.step("Prudence can review the published pack in read-only mode", async () => {
+  await test.step("Prudence verifies the published pack is read-only", async () => {
     await openAsAssociation(page, "/core/association/ddq-packs");
     await page.getByLabel("Search DDQ Pack name").fill(packName);
     await page.getByRole("link", { name: `View ${packName}` }).click();
@@ -60,7 +63,7 @@ test("provider evidence upload can be completed locally", async ({ page }) => {
   const packName = uniqueName("E2E evidence pack");
   const taskTitle = "Upload insurance certificate";
 
-  await test.step("Prudence creates and publishes a document-upload DDQ pack", async () => {
+  await test.step("Prudence publishes a document-upload DDQ pack", async () => {
     await openAsAssociation(page);
     await createDraftPack(page, packName);
     await openPackEditor(page, packName);
@@ -69,7 +72,7 @@ test("provider evidence upload can be completed locally", async ({ page }) => {
     await publishPack(page, packName);
   });
 
-  await test.step("Arthur uploads evidence and completes the checklist", async () => {
+  await test.step("Arthur uploads evidence and submits the DDQ checklist", async () => {
     await openAsProvider(page, "/core/provider/ddq-packs");
     await addPublishedPackToProvider(page, packName);
     await openProviderChecklist(page, packName);
