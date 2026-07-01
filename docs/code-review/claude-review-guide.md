@@ -455,7 +455,6 @@ Files:
 - `pnpm-workspace.yaml`
 - root and package package.json files
 - `README.md`
-- `README-RUN.md`
 - `scripts/`
 - `apps/shell/cdk/`
 - `apps/shell/scripts/`
