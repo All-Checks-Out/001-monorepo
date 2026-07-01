@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 import {
   addFormCompletionTask,
+  addDocumentUploadTask,
   addPublishedPackToProvider,
   completeChecklist,
+  completeProviderEvidenceTask,
   completeProviderFormTask,
   createDraftPack,
   openPackEditor,
@@ -54,12 +56,24 @@ test("Prudence publishes a form-backed DDQ pack and Arthur completes it", async 
   });
 });
 
-test.skip("provider evidence upload can be completed locally", async () => {
-  // TODO: enable when local e2e setup exposes a deterministic S3-created event path
-  // or a backend test hook that completes evidence tasks after uploading to MinIO.
-});
+test("provider evidence upload can be completed locally", async ({ page }) => {
+  const packName = uniqueName("E2E evidence pack");
+  const taskTitle = "Upload insurance certificate";
 
-test.skip("association reviews submitted provider response details", async () => {
-  // TODO: enable when the association UI exposes provider checklist/response review
-  // routes or actions for submitted provider DDQ responses.
+  await test.step("Prudence creates and publishes a document-upload DDQ pack", async () => {
+    await openAsAssociation(page);
+    await createDraftPack(page, packName);
+    await openPackEditor(page, packName);
+    await addDocumentUploadTask(page, taskTitle);
+    await savePackDraft(page);
+    await publishPack(page, packName);
+  });
+
+  await test.step("Arthur uploads evidence and completes the checklist", async () => {
+    await openAsProvider(page, "/core/provider/ddq-packs");
+    await addPublishedPackToProvider(page, packName);
+    await openProviderChecklist(page, packName);
+    await completeProviderEvidenceTask(page, taskTitle);
+    await completeChecklist(page, packName);
+  });
 });

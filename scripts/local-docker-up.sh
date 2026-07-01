@@ -80,24 +80,22 @@ done
 
 echo "Postgres is ready."
 
-if docker ps --format '{{.Names}}' | grep -qx "$MINIO_CONTAINER_NAME"; then
-  echo "$MINIO_CONTAINER_NAME is already running."
-elif docker ps -a --format '{{.Names}}' | grep -qx "$MINIO_CONTAINER_NAME"; then
-  echo "Starting $MINIO_CONTAINER_NAME..."
-  docker start "$MINIO_CONTAINER_NAME" >/dev/null
-else
-  echo "Creating $MINIO_CONTAINER_NAME..."
-  docker volume create "$MINIO_VOLUME_NAME" >/dev/null
-  docker run \
-    --name "$MINIO_CONTAINER_NAME" \
-    -e MINIO_ROOT_USER="$AWS_ACCESS_KEY_ID" \
-    -e MINIO_ROOT_PASSWORD="$AWS_SECRET_ACCESS_KEY" \
-    -e MINIO_API_CORS_ALLOW_ORIGIN="http://localhost:5173,http://localhost:5175" \
-    -p 9000:9000 \
-    -p "$MINIO_CONSOLE_PORT:9001" \
-    -v "$MINIO_VOLUME_NAME:/data" \
-    -d "$MINIO_IMAGE" server /data --console-address ":9001" >/dev/null
+if docker ps -a --format '{{.Names}}' | grep -qx "$MINIO_CONTAINER_NAME"; then
+  echo "Recreating $MINIO_CONTAINER_NAME..."
+  docker rm -f "$MINIO_CONTAINER_NAME" >/dev/null
 fi
+
+echo "Creating $MINIO_CONTAINER_NAME..."
+docker volume create "$MINIO_VOLUME_NAME" >/dev/null
+docker run \
+  --name "$MINIO_CONTAINER_NAME" \
+  -e MINIO_ROOT_USER="$AWS_ACCESS_KEY_ID" \
+  -e MINIO_ROOT_PASSWORD="$AWS_SECRET_ACCESS_KEY" \
+  -e MINIO_API_CORS_ALLOW_ORIGIN="*" \
+  -p 9000:9000 \
+  -p "$MINIO_CONSOLE_PORT:9001" \
+  -v "$MINIO_VOLUME_NAME:/data" \
+  -d "$MINIO_IMAGE" server /data --console-address ":9001" >/dev/null
 
 echo "Waiting for MinIO on localhost:9000..."
 until docker exec "$MINIO_CONTAINER_NAME" mc alias set local http://localhost:9000 "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" >/dev/null 2>&1; do

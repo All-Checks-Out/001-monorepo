@@ -26,7 +26,10 @@ import {
   updateAssociationFormTemplateController,
 } from "../controllers/associationController";
 import { getHealth } from "../controllers/healthController";
-import { listLocalDevUsers } from "../controllers/localDevController";
+import {
+  completeLocalDevEvidenceUpload,
+  listLocalDevUsers,
+} from "../controllers/localDevController";
 import {
   approveProviderCorporationApplication,
   approveProviderAccessRequest,
@@ -84,6 +87,7 @@ publicRoutes.post("/data/seeded-factory-reset", seededFactoryResetDemoData);
 publicRoutes.post("/data/recreate-sample-data", recreateSampleData);
 
 localDevRoutes.get("/users", listLocalDevUsers);
+localDevRoutes.post("/evidence-uploads/complete", completeLocalDevEvidenceUpload);
 
 protectedRoutes.get("/me", getMe);
 protectedRoutes.get("/my-corporation", getMyCorporation);

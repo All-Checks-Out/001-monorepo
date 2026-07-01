@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import type { APIResponse } from "@playwright/test";
 import {
   navigateToAssociationDDQPacks,
   navigateToProviderDDQPacks,
@@ -36,6 +37,22 @@ export async function addFormCompletionTask(
   await expect(page.getByRole("heading", { name: "Add Item" })).toBeVisible();
 
   await page.getByLabel("Form template").selectOption({ label: formName });
+  await page.getByPlaceholder("Title").fill(title);
+  const submitItemButton = page.locator("button").filter({ hasText: /^Add Item$/ });
+  await expect(submitItemButton).toBeEnabled();
+  await submitItemButton.click();
+  await expect(page.getByText(title)).toBeVisible();
+}
+
+export async function addDocumentUploadTask(
+  page: Page,
+  title = "Evidence document",
+) {
+  await page.getByRole("button", { name: /Add item/ }).click();
+  await page.getByRole("menuitem", { name: "Document upload task" }).click();
+  await expect(page.getByRole("heading", { name: "Add Item" })).toBeVisible();
+
+  await page.getByLabel("Document type").selectOption({ label: "Other" });
   await page.getByPlaceholder("Title").fill(title);
   const submitItemButton = page.locator("button").filter({ hasText: /^Add Item$/ });
   await expect(submitItemButton).toBeEnabled();
@@ -89,6 +106,37 @@ export async function completeProviderFormTask(page: Page, taskTitle: string) {
   await expect(page.getByText("Form completed.")).toBeVisible();
 }
 
+export async function completeProviderEvidenceTask(page: Page, taskTitle: string) {
+  await expect(page.getByText(taskTitle)).toBeVisible();
+  await page.getByRole("link", { name: "Execute task" }).click();
+  await expect(page.getByText(taskTitle).first()).toBeVisible();
+
+  await page.getByLabel("File").setInputFiles({
+    name: "evidence.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4\n% E2E evidence fixture\n"),
+  });
+
+  const uploadUrlResponsePromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/evidence/upload-url") &&
+      response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: "Upload evidence" }).click();
+  const uploadUrlResponse = await uploadUrlResponsePromise;
+  expect(uploadUrlResponse.ok()).toBeTruthy();
+  const objectKey = await evidenceObjectKey(uploadUrlResponse);
+
+  await expect(
+    page.getByText("Evidence uploaded. The task will update after S3 confirms the upload."),
+  ).toBeVisible();
+  await completeLocalEvidenceUpload(page, objectKey);
+
+  await page.reload();
+  await expect(page.getByText("Uploaded").first()).toBeVisible();
+  await expect(page.getByText("Completed").first()).toBeVisible();
+}
+
 export async function completeChecklist(page: Page, packName: string) {
   await page.getByRole("link", { name: packName }).click();
   const completeButton = page.getByRole("button", { name: "Complete checklist" });
@@ -101,4 +149,25 @@ export async function completeChecklist(page: Page, packName: string) {
   }
 
   await expect(page.getByText("Completed").first()).toBeVisible();
+}
+
+async function evidenceObjectKey(response: APIResponse) {
+  const body = (await response.json()) as {
+    evidence?: {
+      object_key?: string;
+    };
+  };
+  expect(body.evidence?.object_key, "created evidence object key").toBeTruthy();
+  return body.evidence!.object_key!;
+}
+
+async function completeLocalEvidenceUpload(page: Page, objectKey: string) {
+  const apiBaseURL = process.env.ACO_E2E_API_BASE_URL ?? "http://127.0.0.1:3001";
+  const response = await page.request.post(
+    `${apiBaseURL}/local-dev/evidence-uploads/complete`,
+    {
+      data: { object_key: objectKey },
+    },
+  );
+  expect(response.ok()).toBeTruthy();
 }
