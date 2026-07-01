@@ -9,9 +9,9 @@ import {
   openProviderChecklist,
   publishPack,
   savePackDraft,
-} from "./helpers/ddq-packs";
-import { createCustomForm, reopenForm, uniqueName } from "./helpers/forms";
-import { openAsAssociation, openAsProvider } from "./helpers/navigation";
+} from "../helpers/ddq-packs";
+import { createCustomForm, reopenForm, uniqueName } from "../helpers/forms";
+import { openAsAssociation, openAsProvider } from "../helpers/navigation";
 
 test("Prudence publishes a form-backed DDQ pack and Arthur completes it", async ({ page }) => {
   const formName = uniqueName("E2E golden form");

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { openApp, openAsAssociation, navigateToForms } from "./helpers/navigation";
-import { clearLocalUser } from "./helpers/users";
+import { openApp, openAsAssociation, navigateToForms } from "../helpers/navigation";
+import { clearLocalUser } from "../helpers/users";
 
 test("local startup loads shell navigation and remotes", async ({ page }) => {
   await clearLocalUser(page);

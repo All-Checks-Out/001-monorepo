@@ -10,6 +10,8 @@ cdk.context.json
 .env
 .env.local
 docs/code-review/claude-reviews/smoke-test.md
+ui-testing/playwright/results/
+ui-testing/playwright/report/
 
 # Python
 .venv/

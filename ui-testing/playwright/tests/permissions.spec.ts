@@ -5,7 +5,7 @@ import {
   navigateToProviderDDQPacks,
   openAsAssociation,
   openAsProvider,
-} from "./helpers/navigation";
+} from "../helpers/navigation";
 
 test("association and provider navigation respects permissions", async ({ page }) => {
   await openAsAssociation(page, "/core/association/ddq-packs");
