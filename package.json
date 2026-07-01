@@ -23,8 +23,8 @@
     "start:local": "bash scripts/local-start.sh",
     "stop:local": "bash scripts/local-stop.sh",
     "build": "pnpm -r build",
-    "unit-test:frontend": "pnpm --filter @shared/permissions exec vitest run && pnpm --filter @apps/core exec vitest run --environment jsdom",
-    "unit-test:backend": "pnpm --filter @services/onboarding-service exec vitest run",
+    "unit-test:frontend": "pnpm exec vitest run --project @shared/permissions --project @apps/core",
+    "unit-test:backend": "pnpm exec vitest run --project @services/onboarding-service",
     "unit-test:all": "pnpm run unit-test:frontend && pnpm run unit-test:backend",
     "e2e-test:frontend": "bash ui-testing/playwright/scripts/run-frontend-e2e.sh",
     "e2e-test:frontend:verbose": "bash ui-testing/playwright/scripts/run-frontend-e2e.sh --verbose",
@@ -46,6 +46,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
-    "esbuild": "0.27.7"
+    "esbuild": "0.27.7",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.9"
   }
 }
