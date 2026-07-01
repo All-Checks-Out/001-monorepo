@@ -178,34 +178,33 @@ pnpm run build
 
 ## Test
 
-Everything:
+```text
+unit-test:frontend        Frontend Vitest tests
 
-```bash
-pnpm test
+unit-test:backend         Backend Vitest tests
+
+unit-test:all             All Vitest tests
+
+e2e-test:frontend         Frontend Playwright browser tests
+
+e2e-test:frontend:headed  Headed Playwright run
+
+e2e-test:frontend:debug   Debug Playwright run
+
+test:all                  All unit tests and Playwright tests
 ```
 
-Everything a PR runs:
-
 ```bash
-pnpm run verify
+pnpm run unit-test:frontend
+pnpm run unit-test:backend
+pnpm run unit-test:all
+pnpm run e2e-test:frontend
+pnpm run e2e-test:frontend:headed
+pnpm run e2e-test:frontend:debug
+pnpm run test:all
 ```
 
-## UI Tests
-
-Run browser-level Playwright tests:
-
-```bash
-pnpm run test:ui
-```
-
-Playwright-specific UI testing files live under `ui-testing/playwright/`. The UI runner starts local infrastructure, the local backend, and production-style frontend preview mode at `http://127.0.0.1:4173`. OrbStack/Docker must be available. To reuse already-started local services, set `ACO_E2E_SKIP_LOCAL_SETUP=1`.
-
-Headed and debug modes:
-
-```bash
-pnpm run test:ui:headed
-pnpm run test:ui:debug
-```
+Playwright-specific UI testing files live under `ui-testing/playwright/`.
 
 ---
 
@@ -364,7 +363,7 @@ pnpm run dev -- local
 3. Test
 
 ```bash
-pnpm test
+pnpm run test:all
 ```
 
 4. Deploy testing

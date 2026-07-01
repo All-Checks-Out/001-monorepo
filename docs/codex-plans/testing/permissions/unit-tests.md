@@ -150,9 +150,9 @@ Add clear package scripts.
 
 Suggested scripts:
 
-pnpm test
-pnpm test:backend
-pnpm test:frontend
+pnpm run unit-test:all
+pnpm run unit-test:backend
+pnpm run unit-test:frontend
 
 Acceptance criteria:
 

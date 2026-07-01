@@ -3,9 +3,9 @@
 Playwright is used for browser-level UI testing.
 
 ```bash
-pnpm run test:ui
-pnpm run test:ui:headed
-pnpm run test:ui:debug
+pnpm run e2e-test:frontend
+pnpm run e2e-test:frontend:headed
+pnpm run e2e-test:frontend:debug
 ```
 
 Playwright files live under `ui-testing/playwright/`.

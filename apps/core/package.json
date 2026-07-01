@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "build": "vite build",
-    "test": "vitest run --environment jsdom",
     "preview": "vite preview --port 4174",
     "deploy:local": "pnpm run generate-env && pnpm run build",
     "destroy:local": "echo \"No local core infrastructure to destroy.\"",

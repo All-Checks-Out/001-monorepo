@@ -508,7 +508,7 @@ Backend:
 
 ```bash
 pnpm -C services/onboarding-service run type-check
-pnpm -C services/onboarding-service run test:security
+pnpm --filter @services/onboarding-service exec tsx scripts/src/onboarding-service-test.ts
 ```
 
 Frontend:

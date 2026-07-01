@@ -33,9 +33,9 @@ questions. The source specifications remain:
 | --- | --- |
 | Existing colocated tests | Permission tests now exist in shared permissions, onboarding service, and core app packages |
 | Existing Vitest config | Package-local Vitest scripts are used where tests exist |
-| Backend package test script | `services/onboarding-service/package.json` has `test: vitest run` |
-| Frontend package test script | `apps/core/package.json` has `test: vitest run --environment jsdom` |
-| Root test scripts | `pnpm test`, `pnpm test:backend`, and `pnpm test:frontend` are available |
+| Backend unit-test command | `pnpm run unit-test:backend` runs backend Vitest tests |
+| Frontend unit-test command | `pnpm run unit-test:frontend` runs frontend Vitest tests |
+| Root test scripts | `pnpm run unit-test:all`, `pnpm run unit-test:backend`, and `pnpm run unit-test:frontend` are available |
 | Permission source of truth | `packages/shared/permissions/src/index.ts` |
 | Backend route registration | `services/onboarding-service/src/routes/onboardingRoutes.ts` |
 | Frontend route protection | `apps/core/src/CoreRouteContent.tsx` |
@@ -135,7 +135,7 @@ framework.
 | Should `GET /provider/ddq-packs/available` require `provider-ddq-packs:add-new`? | Decided yes; implemented in service layer. |
 | Should `GET /provider/ddq-packs/:packId/items` require `provider-ddq-packs:add-new` when used as an add-flow preview? | Decided yes; implemented in service layer. |
 | Should provider setup/access request routes be wrapped at route level? | Decided yes; implemented with any-of route guards. |
-| Should root package get `test`, `test:backend`, and `test:frontend` scripts? | Decided yes; implemented. |
+| Should root package get `unit-test:all`, `unit-test:backend`, and `unit-test:frontend` scripts? | Decided yes; implemented. |
 
 ## Commands Run
 
@@ -147,32 +147,32 @@ framework.
 | `rg "path=|element=|hasPermission\\(|can[A-Z]|onClick=|disabled=|PermissionRequired" apps/core/src/pages apps/core/src/CoreRouteContent.tsx apps/core/src/components -n` | Enumerated frontend route/action gates. |
 | `rg "listAvailableProviderDDQPacks|listProviderDDQPackItems|getAvailableProviderDDQPacks|getProviderDDQPackItems" -n` | Confirmed the frontend usage is the provider add flow. |
 | `pnpm --filter @services/onboarding-service type-check` | Passed. |
-| `pnpm --filter @services/onboarding-service test` | Passed initial backend permission tests. |
+| `pnpm --filter @services/onboarding-service exec vitest run` | Passed initial backend permission tests. |
 | `pnpm --filter @services/onboarding-service type-check` | Passed after adding backend tests. |
 | `pnpm --filter @apps/core type-check` | Passed after frontend permission checks. |
-| `pnpm --filter @apps/core test` | Passed initial frontend permission tests. |
+| `pnpm --filter @apps/core exec vitest run --environment jsdom` | Passed initial frontend permission tests. |
 | `pnpm --filter @apps/core type-check` | Passed after adding frontend tests. |
-| `pnpm test` | Passed after the initial backend/frontend test harness was added. |
-| `pnpm --filter @shared/permissions test` | Passed: shared permission matrix. |
-| `pnpm --filter @services/onboarding-service test` | Passed: backend permission matrix and controller/service guard tests. |
-| `pnpm --filter @apps/core test` | Passed: frontend `PermissionRequired`, route matrix, and provider DDQ tests. |
+| `pnpm run unit-test:all` | Passed after the initial backend/frontend test harness was added. |
+| `pnpm --filter @shared/permissions exec vitest run` | Passed: shared permission matrix. |
+| `pnpm --filter @services/onboarding-service exec vitest run` | Passed: backend permission matrix and controller/service guard tests. |
+| `pnpm --filter @apps/core exec vitest run --environment jsdom` | Passed: frontend `PermissionRequired`, route matrix, and provider DDQ tests. |
 
 ## Changes Made
 
 | Step | File | Change |
 | --- | --- | --- |
 | 1 | `services/onboarding-service/src/services/onboardingService.ts` | Added `provider-ddq-packs:add-new` checks to `getAvailableProviderDDQPacks` and `getProviderDDQPackItems`. |
-| 2 | `services/onboarding-service/package.json` | Added package-local `test` script using Vitest. |
+| 2 | `package.json` | Added root `unit-test:backend` command using Vitest. |
 | 2 | `services/onboarding-service/src/services/onboardingService.test.ts` | Added allowed/disallowed tests for provider DDQ available-pack and item-preview permission checks. |
 | 2 | `pnpm-lock.yaml` | Added Vitest dependency lock entries for the onboarding service. |
 | 3 | `apps/core/src/components/PermissionRequired.tsx` | Added support for any-of permission route guards. |
 | 3 | `apps/core/src/CoreRouteContent.tsx` | Wrapped provider setup/access request routes with any-of read permission guards. |
 | 3 | `apps/core/src/pages/ProviderDDQPacks.tsx` | Hid and guarded the provider DDQ add flow behind `provider-ddq-packs:add-new`. |
-| 4 | `apps/core/package.json` | Added package-local Vitest/jsdom test script. |
+| 4 | `package.json` | Added root `unit-test:frontend` command using Vitest/jsdom. |
 | 4 | `apps/core/src/components/PermissionRequired.test.tsx` | Added allowed, denied, and any-of permission rendering tests. |
 | 4 | `apps/core/src/pages/ProviderDDQPacks.test.tsx` | Added allowed/denied visibility tests for the provider DDQ add action. |
 | 4 | `pnpm-lock.yaml` | Added frontend Vitest, React Testing Library, and jsdom dependency lock entries. |
-| 4 | `package.json` | Added root `test`, `test:backend`, and `test:frontend` scripts. |
+| 4 | `package.json` | Added root `unit-test:all`, `unit-test:backend`, and `unit-test:frontend` scripts. |
 | Later cleanup | `packages/shared/permissions/src/index.test.ts` | Added shared permission matrix tests for all corporation types. |
 | Later cleanup | `services/onboarding-service/src/services/currentUser.test.ts` | Added backend current-user guard matrix tests. |
 | Later cleanup | `services/onboarding-service/src/controllers/*.permissions.test.ts` | Added controller permission gate wiring tests. |
