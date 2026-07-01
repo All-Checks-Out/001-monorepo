@@ -36,6 +36,16 @@ const guard = (
   </PermissionRequired>
 );
 
+const guardAny = (
+  permissions: Permission[],
+  element: ReactNode,
+  { title }: GuardOptions = {},
+) => (
+  <PermissionRequired permissions={permissions} title={title}>
+    {element}
+  </PermissionRequired>
+);
+
 const useDocumentTheme = (hostContext?: RemoteAppProps["hostContext"]) => {
   const { dark } = useTheme();
   const documentDark = hostContext?.theme.dark ?? dark;
@@ -94,11 +104,19 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
       />
       <Route
         path="provider/setup-requests"
-        element={<ProviderSetupRequests />}
+        element={guardAny(
+          ["agent-requests:read", "stakeholder-requests:read"],
+          <ProviderSetupRequests />,
+          { title: "Setup requests" },
+        )}
       />
       <Route
         path="provider/access-requests"
-        element={<ProviderAccessRequests />}
+        element={guardAny(
+          ["agent-requests:read", "stakeholder-requests:read"],
+          <ProviderAccessRequests />,
+          { title: "Access requests" },
+        )}
       />
       <Route path="agent/providers" element={<ProviderDirectory />} />
       <Route path="agent/requests" element={<OwnRequests />} />

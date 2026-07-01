@@ -64,6 +64,7 @@ const ProviderDDQPacks = () => {
     hasPermission("ddq-packs:review-checks") ||
     hasPermission("ddq-packs:approve-checks");
   const canPerformChecklist = hasPermission("ddq-packs:perform-checks");
+  const canAddDDQPacks = hasPermission("ddq-packs:add-new");
 
   async function loadProviderPacks() {
     setLoadingProviderPacks(true);
@@ -81,6 +82,8 @@ const ProviderDDQPacks = () => {
   }
 
   async function loadAvailablePacks() {
+    if (!canAddDDQPacks) return;
+
     setLoadingAvailablePacks(true);
     setMessage("");
     setError("");
@@ -100,6 +103,8 @@ const ProviderDDQPacks = () => {
   }
 
   async function openAddFlow() {
+    if (!canAddDDQPacks) return;
+
     setMode("add");
     setSelectedPackId(null);
     setItems([]);
@@ -109,6 +114,8 @@ const ProviderDDQPacks = () => {
   }
 
   async function selectPack(pack: DDQPack) {
+    if (!canAddDDQPacks) return;
+
     setSelectedPackId(pack.id);
     setItems([]);
     setLoadingItems(true);
@@ -139,7 +146,7 @@ const ProviderDDQPacks = () => {
   }
 
   async function saveSelectedPack() {
-    if (selectedPackId === null) return;
+    if (!canAddDDQPacks || selectedPackId === null) return;
 
     setSavingPack(true);
     setMessage("");
@@ -182,6 +189,12 @@ const ProviderDDQPacks = () => {
   useEffect(() => {
     void loadProviderPacks();
   }, []);
+
+  useEffect(() => {
+    if (mode === "add" && !canAddDDQPacks) {
+      closeAddFlow();
+    }
+  }, [mode, canAddDDQPacks]);
 
   const visiblePacks = useMemo(() => {
     const normalizedNameFilter = nameFilter.trim().toLowerCase();
@@ -239,15 +252,17 @@ const ProviderDDQPacks = () => {
 
       {mode === "list" ? (
         <div className="grid gap-3">
-          <Button
-            className="w-fit"
-            type="button"
-            disabled={loadingProviderPacks}
-            onClick={openAddFlow}
-          >
-            <Plus className="size-4" />
-            Add DDQ Pack
-          </Button>
+          {canAddDDQPacks && (
+            <Button
+              className="w-fit"
+              type="button"
+              disabled={loadingProviderPacks}
+              onClick={openAddFlow}
+            >
+              <Plus className="size-4" />
+              Add DDQ Pack
+            </Button>
+          )}
           <ProviderPacksTable
             packs={providerPacks}
             loading={loadingProviderPacks}
@@ -376,7 +391,7 @@ const ProviderDDQPacks = () => {
             <Button
               className="w-fit"
               type="button"
-              disabled={savingPack || selectedPackId === null}
+              disabled={savingPack || selectedPackId === null || !canAddDDQPacks}
               onClick={saveSelectedPack}
             >
               Add selected DDQ Pack

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "type-check": "tsc --noEmit && tsc --noEmit -p cdk/tsconfig.json",
+    "test": "vitest run",
     "database:show-secret": "tsx scripts/src/database-show-secret.ts",
     "test:security": "tsx scripts/src/onboarding-service-test.ts",
     "test:local-mode": "tsx scripts/src/local-mode-test.ts",
@@ -41,6 +42,7 @@
     "@types/pg": "^8.15.6",
     "esbuild": "0.27.7",
     "tsx": "4.21.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.9"
   }
 }

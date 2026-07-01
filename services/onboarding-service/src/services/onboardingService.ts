@@ -579,6 +579,8 @@ export async function getProviderDDQPacks(_context: CurrentUserContext) {
 }
 
 export async function getAvailableProviderDDQPacks(context: CurrentUserContext) {
+  requirePermission(context, "ddq-packs:add-new");
+
   const client = await createDbClient();
 
   try {
@@ -619,9 +621,11 @@ export async function addProviderDDQPack(
 }
 
 export async function getProviderDDQPackItems(
-  _context: CurrentUserContext,
+  context: CurrentUserContext,
   packId: number,
 ) {
+  requirePermission(context, "ddq-packs:add-new");
+
   const client = await createDbClient();
 
   try {

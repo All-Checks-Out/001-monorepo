@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "vite build",
+    "test": "vitest run --environment jsdom",
     "preview": "vite preview --port 4174",
     "deploy:local": "pnpm run generate-env && pnpm run build",
     "destroy:local": "echo \"No local core infrastructure to destroy.\"",
@@ -31,14 +32,17 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.3.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
     "aws-cdk-lib": "2.235.1",
     "constructs": "10.4.5",
+    "jsdom": "^29.1.1",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.1.9"
   }
 }
