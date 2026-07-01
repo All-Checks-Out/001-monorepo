@@ -18,10 +18,10 @@ describe("PermissionRequired", () => {
   });
 
   it("renders protected content when the user has the required permission", () => {
-    mockCurrentUserPermissions(["users:read"]);
+    mockCurrentUserPermissions(["own-users:read"]);
 
     render(
-      <PermissionRequired permission="users:read">
+      <PermissionRequired permission="own-users:read">
         <span>Protected users page</span>
       </PermissionRequired>,
     );
@@ -33,7 +33,7 @@ describe("PermissionRequired", () => {
     mockCurrentUserPermissions([]);
 
     render(
-      <PermissionRequired permission="users:read">
+      <PermissionRequired permission="own-users:read">
         <span>Protected users page</span>
       </PermissionRequired>,
     );
@@ -45,17 +45,38 @@ describe("PermissionRequired", () => {
   });
 
   it("renders protected content when the user has any required permission", () => {
-    mockCurrentUserPermissions(["stakeholder-requests:read"]);
+    mockCurrentUserPermissions(["provider-stakeholder-requests:read"]);
 
     render(
       <PermissionRequired
-        permissions={["agent-requests:read", "stakeholder-requests:read"]}
+        permissions={[
+          "provider-agent-requests:read",
+          "provider-stakeholder-requests:read",
+        ]}
       >
         <span>Provider requests</span>
       </PermissionRequired>,
     );
 
     expect(screen.getByText("Provider requests")).toBeTruthy();
+  });
+
+  it("renders an access denied message when the user lacks one required permission", () => {
+    mockCurrentUserPermissions(["all-corporations:read"]);
+
+    render(
+      <PermissionRequired
+        permissions={["all-corporations:read", "all-users:read"]}
+        requireAll
+      >
+        <span>System data</span>
+      </PermissionRequired>,
+    );
+
+    expect(
+      screen.getByText("You do not have permission to access this page."),
+    ).toBeTruthy();
+    expect(screen.queryByText("System data")).toBeNull();
   });
 });
 

@@ -209,7 +209,7 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
   const { templateId } = useParams();
   const [searchParams] = useSearchParams();
   const { loading: userLoading, hasPermission } = useCurrentUser();
-  const canEditForms = hasPermission("forms:edit");
+  const canEditForms = hasPermission("association-forms:edit");
   const readOnly =
     mode === "edit" && (searchParams.get("mode") === "read-only" || !canEditForms);
   const parsedTemplateId = mode === "edit" ? Number(templateId) : null;

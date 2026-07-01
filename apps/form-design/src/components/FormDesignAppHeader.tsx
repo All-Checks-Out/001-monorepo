@@ -18,7 +18,7 @@ export const FormDesignAppHeader = ({
     pathname === FORM_DESIGN_BASE_PATH ||
     pathname.startsWith(`${FORM_DESIGN_BASE_PATH}/`);
 
-  if (corporationType !== "ASSOCIATION" || !hasPermission("forms:read")) {
+  if (corporationType !== "ASSOCIATION" || !hasPermission("association-forms:read")) {
     return null;
   }
 

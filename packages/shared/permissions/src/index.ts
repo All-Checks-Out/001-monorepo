@@ -2,32 +2,33 @@ export type CorporationType = "ASSOCIATION" | "PROVIDER" | "AGENT" | "STAKEHOLDE
 
 export const PERMISSIONS_BY_CORPORATION_TYPE = {
   ASSOCIATION: [
-    "provider-requests:read",
-    "provider-requests:approve",
-    "system-data:read",
-    "users:read",
-    "users:invite",
-    "user-permissions:change",
-    "ddq-packs:read",
-    "ddq-packs:edit",
-    "forms:read",
-    "forms:edit",
+    "association-provider-requests:read",
+    "association-provider-requests:approve",
+    "all-corporations:read",
+    "all-users:read",
+    "own-users:read",
+    "own-users:invite",
+    "own-user-permissions:change",
+    "association-ddq-packs:read",
+    "association-ddq-packs:edit",
+    "association-forms:read",
+    "association-forms:edit",
   ],
   PROVIDER: [
-    "agent-requests:read",
-    "agent-requests:approve",
-    "stakeholder-requests:read",
-    "stakeholder-requests:approve",
-    "users:read",
-    "users:invite",
-    "user-permissions:change",
-    "ddq-packs:add-new",
-    "ddq-packs:perform-checks",
-    "ddq-packs:review-checks",
-    "ddq-packs:approve-checks",
+    "provider-agent-requests:read",
+    "provider-agent-requests:approve",
+    "provider-stakeholder-requests:read",
+    "provider-stakeholder-requests:approve",
+    "own-users:read",
+    "own-users:invite",
+    "own-user-permissions:change",
+    "provider-ddq-packs:add-new",
+    "provider-ddq-packs:perform-checks",
+    "provider-ddq-packs:review-checks",
+    "provider-ddq-packs:approve-checks",
   ],
-  AGENT: ["users:read", "users:invite", "user-permissions:change"],
-  STAKEHOLDER: ["users:read", "users:invite", "user-permissions:change"],
+  AGENT: ["own-users:read", "own-users:invite", "own-user-permissions:change"],
+  STAKEHOLDER: ["own-users:read", "own-users:invite", "own-user-permissions:change"],
 } as const satisfies Record<CorporationType, readonly string[]>;
 
 export type PermissionByCorporationType = typeof PERMISSIONS_BY_CORPORATION_TYPE;
@@ -40,6 +41,15 @@ export type Permission =
   | ProviderPermission
   | AgentPermission
   | StakeholderPermission;
+
+export type PermissionUser = {
+  permissions: readonly Permission[];
+};
+
+export type PermissionContext = {
+  user: PermissionUser | null;
+  corporationType: CorporationType | null;
+};
 
 export function getPermissionsForCorporationType(type: CorporationType): readonly Permission[] {
   return PERMISSIONS_BY_CORPORATION_TYPE[type];
@@ -66,23 +76,19 @@ export function validatePermissionsForCorporationType(
 }
 
 export function getEffectivePermissions(
-  user: { permissions: readonly Permission[] },
-  corporation: { type: CorporationType },
+  context: PermissionContext,
 ): Permission[] {
-  const allowedPermissions = getPermissionsForCorporationType(corporation.type);
-  return user.permissions.filter((permission) => allowedPermissions.includes(permission));
+  if (!context.user || !context.corporationType) return [];
+
+  const allowedPermissions = getPermissionsForCorporationType(context.corporationType);
+  return context.user.permissions.filter((permission) =>
+    allowedPermissions.includes(permission),
+  );
 }
 
 export function hasPermission(
-  context: {
-    user: { permissions: readonly Permission[] };
-    corporation: { type: CorporationType };
-  },
+  context: PermissionContext,
   permission: Permission,
 ) {
-  if (!isPermissionForCorporationType(context.corporation.type, permission)) {
-    return false;
-  }
-
-  return context.user.permissions.includes(permission);
+  return getEffectivePermissions(context).includes(permission);
 }

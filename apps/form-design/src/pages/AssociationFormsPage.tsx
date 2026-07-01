@@ -17,7 +17,7 @@ function formatDateTime(value: string) {
 
 export const AssociationFormsPage = () => {
   const { hasPermission } = useCurrentUser();
-  const canEditForms = hasPermission("forms:edit");
+  const canEditForms = hasPermission("association-forms:edit");
   const [templates, setTemplates] = useState<FormTemplateSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);

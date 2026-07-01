@@ -7,6 +7,7 @@ import { useCurrentUser } from "../context/CurrentUserContext";
 interface PermissionRequiredProps {
   permission?: Permission;
   permissions?: Permission[];
+  requireAll?: boolean;
   children: ReactNode;
   title?: string | null;
 }
@@ -14,6 +15,7 @@ interface PermissionRequiredProps {
 const PermissionRequired = ({
   permission,
   permissions,
+  requireAll = false,
   children,
   title = null,
 }: PermissionRequiredProps) => {
@@ -24,7 +26,11 @@ const PermissionRequired = ({
     return <Page title={title}>Loading...</Page>;
   }
 
-  if (!requiredPermissions.some((requiredPermission) => hasPermission(requiredPermission))) {
+  const hasRequiredPermissions = requireAll
+    ? requiredPermissions.every((requiredPermission) => hasPermission(requiredPermission))
+    : requiredPermissions.some((requiredPermission) => hasPermission(requiredPermission));
+
+  if (!hasRequiredPermissions) {
     return (
       <Page title={title}>
         <Status error="You do not have permission to access this page." />

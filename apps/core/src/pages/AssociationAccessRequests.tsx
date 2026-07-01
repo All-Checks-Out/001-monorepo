@@ -51,7 +51,7 @@ const AssociationAccessRequests = () => {
       title="Access requests"
       requests={requests}
       error={error}
-      canApprove={() => hasPermission("provider-requests:approve")}
+      canApprove={() => hasPermission("association-provider-requests:approve")}
       onApprove={(id) => decide(id, "approve")}
       onReject={(id) => decide(id, "reject")}
     />

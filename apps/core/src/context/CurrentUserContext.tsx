@@ -1,6 +1,11 @@
 import { useAuth } from "@frontend/auth/session/AuthProvider";
 import type { AppUser, Corporation } from "@frontend/api/onboarding/types";
-import type { CorporationType, Permission } from "@shared/permissions";
+import {
+  getEffectivePermissions,
+  hasPermission,
+  type CorporationType,
+  type Permission,
+} from "@shared/permissions";
 import { getMe } from "@frontend/api/onboarding/client";
 import {
   createContext,
@@ -9,10 +14,6 @@ import {
   useState,
   ReactNode,
 } from "react";
-import {
-  getEffectivePermissions,
-  hasPermission,
-} from "../utils/permissions";
 import type { HostCurrentUserContext } from "../hostContext";
 
 /////////////

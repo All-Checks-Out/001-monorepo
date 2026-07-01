@@ -129,7 +129,7 @@ const AssociationDDQPacks = () => {
     form.name.trim() && form.valid_from && form.valid_to && !dateRangeError,
   );
   const hasActiveEdits = showForm && isCreateDirty;
-  const canEditDDQPacks = hasPermission("ddq-packs:edit");
+  const canEditDDQPacks = hasPermission("association-ddq-packs:edit");
 
   const columns = useMemo<ColumnDef<DDQPack>[]>(
     () => [

@@ -83,7 +83,7 @@ export async function requirePermission(
 
   if (!context) return null;
 
-  if (!hasPermission(context, permission)) {
+  if (!hasPermission(toPermissionContext(context), permission)) {
     res.status(403).json({ error: "Permission required." });
     return null;
   }
@@ -100,7 +100,7 @@ export async function requireAssociationUserWithPermission(
 
   if (!context) return null;
 
-  if (!hasPermission(context, permission)) {
+  if (!hasPermission(toPermissionContext(context), permission)) {
     res.status(403).json({ error: "Permission required." });
     return null;
   }
@@ -117,10 +117,17 @@ export async function requireProviderUserWithPermission(
 
   if (!context) return null;
 
-  if (!hasPermission(context, permission)) {
+  if (!hasPermission(toPermissionContext(context), permission)) {
     res.status(403).json({ error: "Permission required." });
     return null;
   }
 
   return context;
+}
+
+function toPermissionContext(context: CurrentUserContext) {
+  return {
+    user: context.user,
+    corporationType: context.corporation.type,
+  };
 }

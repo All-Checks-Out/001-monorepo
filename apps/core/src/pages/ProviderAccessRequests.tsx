@@ -49,11 +49,11 @@ const ProviderAccessRequests = () => {
 
   function canApproveRequest(requesterType: CorporationType | undefined) {
     if (requesterType === "AGENT") {
-      return hasPermission("agent-requests:approve");
+      return hasPermission("provider-agent-requests:approve");
     }
 
     if (requesterType === "STAKEHOLDER") {
-      return hasPermission("stakeholder-requests:approve");
+      return hasPermission("provider-stakeholder-requests:approve");
     }
 
     return false;

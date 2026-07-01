@@ -1,6 +1,6 @@
 import {
-  getEffectivePermissions as getSharedEffectivePermissions,
-  hasPermission as sharedHasPermission,
+  getEffectivePermissions,
+  hasPermission,
   type CorporationType,
   type Permission,
 } from "@shared/permissions";
@@ -94,10 +94,8 @@ export const CurrentUserProvider = ({ children }: CurrentUserProviderProps) => {
   }, [authLoading, isLoggedIn]);
 
   const corporationType = corporation?.type ?? null;
-  const effectivePermissions =
-    user && corporationType
-      ? getSharedEffectivePermissions(user, { type: corporationType })
-      : [];
+  const permissionContext = { user, corporationType };
+  const effectivePermissions = getEffectivePermissions(permissionContext);
 
   return (
     <CurrentUserContext.Provider
@@ -108,14 +106,7 @@ export const CurrentUserProvider = ({ children }: CurrentUserProviderProps) => {
         loading,
         effectivePermissions,
         hasPermission: (permission) =>
-          Boolean(
-            user &&
-              corporationType &&
-              sharedHasPermission(
-                { user, corporation: { type: corporationType } },
-                permission,
-              ),
-          ),
+          hasPermission(permissionContext, permission),
         refreshCurrentUser,
       }}
     >

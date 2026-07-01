@@ -38,7 +38,7 @@ export async function getMyCorporation(req: Request, res: Response) {
 }
 
 export async function getMyUsers(req: Request, res: Response) {
-  const context = await requirePermission(req, res, "users:read");
+  const context = await requirePermission(req, res, "own-users:read");
   if (!context) return;
 
   try {
@@ -53,7 +53,7 @@ export async function inviteMyUser(req: Request, res: Response) {
   const input = parseBody(req, res, inviteUserSchema);
   if (!input) return;
 
-  const context = await requirePermission(req, res, "users:invite");
+  const context = await requirePermission(req, res, "own-users:invite");
   if (!context) return;
 
   try {
@@ -71,7 +71,7 @@ export async function updateMyCorporationUserPermissions(req: Request, res: Resp
   const input = parseBody(req, res, updateUserPermissionsSchema);
   if (!input) return;
 
-  const context = await requirePermission(req, res, "user-permissions:change");
+  const context = await requirePermission(req, res, "own-user-permissions:change");
   if (!context) return;
 
   try {

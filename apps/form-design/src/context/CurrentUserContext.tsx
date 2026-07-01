@@ -1,7 +1,7 @@
 import type { AppUser, Corporation } from "@frontend/api/onboarding/types";
 import {
-  getEffectivePermissions as getSharedEffectivePermissions,
-  hasPermission as sharedHasPermission,
+  getEffectivePermissions,
+  hasPermission,
   type CorporationType,
   type Permission,
 } from "@shared/permissions";
@@ -41,40 +41,6 @@ export function useCurrentUser() {
 
   return value;
 }
-
-/////////////
-// PERMISSIONS
-/////////////
-
-type PermissionContext = {
-  user: AppUser | null;
-  corporationType: CorporationType | null;
-};
-
-function getEffectivePermissions({
-  user,
-  corporationType,
-}: PermissionContext): Permission[] {
-  if (!user || !corporationType) return [];
-
-  return getSharedEffectivePermissions(user, { type: corporationType });
-}
-
-function hasPermission(
-  context: PermissionContext,
-  permission: Permission,
-): boolean {
-  if (!context.user || !context.corporationType) return false;
-
-  return sharedHasPermission(
-    { user: context.user, corporation: { type: context.corporationType } },
-    permission,
-  );
-}
-
-/////////////
-// PROVIDER
-/////////////
 
 interface CurrentUserProviderProps {
   children: ReactNode;
@@ -149,7 +115,8 @@ export const CurrentUserProvider = ({
   }
 
   const corporationType = corporation?.type ?? null;
-  const effectivePermissions = getEffectivePermissions({ user, corporationType });
+  const permissionContext = { user, corporationType };
+  const effectivePermissions = getEffectivePermissions(permissionContext);
 
   return (
     <CurrentUserContext.Provider
@@ -160,7 +127,7 @@ export const CurrentUserProvider = ({
         loading,
         effectivePermissions,
         hasPermission: (permission) =>
-          hasPermission({ user, corporationType }, permission),
+          hasPermission(permissionContext, permission),
         refreshCurrentUser,
       }}
     >

@@ -107,7 +107,7 @@ const AssociationDDQPackContent = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const numericPackId = Number(packId);
-  const canEditDDQPacks = hasPermission("ddq-packs:edit");
+  const canEditDDQPacks = hasPermission("association-ddq-packs:edit");
   const readOnly = searchParams.get("mode") === "read-only" || !canEditDDQPacks;
   const [baseline, setBaseline] = useState<PackDraftState | null>(null);
   const [draft, setDraft] = useState<PackDraftState | null>(null);

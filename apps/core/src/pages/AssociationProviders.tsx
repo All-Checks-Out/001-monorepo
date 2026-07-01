@@ -54,7 +54,7 @@ const AssociationProviders = () => {
   const pendingProviderRequests = applications.filter(
     (application) => application.status === "pending",
   );
-  const canApproveProviderRequests = hasPermission("provider-requests:approve");
+  const canApproveProviderRequests = hasPermission("association-provider-requests:approve");
 
   return (
     <Page title="Requests">

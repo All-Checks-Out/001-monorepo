@@ -30,7 +30,7 @@ import SimpleTable from "../tables/SimpleTable";
 import Status from "../components/Status";
 import { useCurrentUser } from "../context/CurrentUserContext";
 import { displayCorporationType } from "../utils/corporationDisplay";
-import { getEffectivePermissions } from "../utils/permissions";
+import { getEffectivePermissions } from "@shared/permissions";
 
 type CorporationTableRow = {
   id: number;
@@ -202,7 +202,7 @@ const AssociationSystemData = () => {
         ]}
       />
       <h2 className="text-lg font-semibold">Users</h2>
-      {hasPermission("users:invite") && (
+      {hasPermission("own-users:invite") && (
         <div className="flex max-w-xl flex-col gap-2 sm:flex-row">
           <Input
             type="email"

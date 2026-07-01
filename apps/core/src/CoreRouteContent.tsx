@@ -46,6 +46,16 @@ const guardAny = (
   </PermissionRequired>
 );
 
+const guardAll = (
+  permissions: Permission[],
+  element: ReactNode,
+  { title }: GuardOptions = {},
+) => (
+  <PermissionRequired permissions={permissions} requireAll title={title}>
+    {element}
+  </PermissionRequired>
+);
+
 const useDocumentTheme = (hostContext?: RemoteAppProps["hostContext"]) => {
   const { dark } = useTheme();
   const documentDark = hostContext?.theme.dark ?? dark;
@@ -65,29 +75,37 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
       <Route path="profile" element={<Profile />} />
       <Route
         path="association/providers"
-        element={guard("provider-requests:read", <AssociationProviders />)}
+        element={guard(
+          "association-provider-requests:read",
+          <AssociationProviders />,
+        )}
       />
       <Route
         path="association/system-data"
-        element={guard("system-data:read", <AssociationSystemData />)}
+        element={guardAll(
+          ["all-corporations:read", "all-users:read"],
+          <AssociationSystemData />,
+        )}
       />
       <Route
         path="association/users"
-        element={guard("users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
       />
       <Route
         path="association/access-requests"
-        element={guard("provider-requests:read", <AssociationAccessRequests />, {
-          title: "Access requests",
-        })}
+        element={guard(
+          "association-provider-requests:read",
+          <AssociationAccessRequests />,
+          { title: "Access requests" },
+        )}
       />
       <Route
         path="association/ddq-packs"
-        element={guard("ddq-packs:read", <AssociationDDQPacks />)}
+        element={guard("association-ddq-packs:read", <AssociationDDQPacks />)}
       />
       <Route
         path="association/ddq-packs/:packId"
-        element={guard("ddq-packs:read", <AssociationDDQPackContent />)}
+        element={guard("association-ddq-packs:read", <AssociationDDQPackContent />)}
       />
       <Route path="provider/ddq-packs" element={<ProviderDDQPacks />} />
       <Route
@@ -100,12 +118,15 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
       />
       <Route
         path="provider/users"
-        element={guard("users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
       />
       <Route
         path="provider/setup-requests"
         element={guardAny(
-          ["agent-requests:read", "stakeholder-requests:read"],
+          [
+            "provider-agent-requests:read",
+            "provider-stakeholder-requests:read",
+          ],
           <ProviderSetupRequests />,
           { title: "Setup requests" },
         )}
@@ -113,7 +134,10 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
       <Route
         path="provider/access-requests"
         element={guardAny(
-          ["agent-requests:read", "stakeholder-requests:read"],
+          [
+            "provider-agent-requests:read",
+            "provider-stakeholder-requests:read",
+          ],
           <ProviderAccessRequests />,
           { title: "Access requests" },
         )}
@@ -122,13 +146,13 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
       <Route path="agent/requests" element={<OwnRequests />} />
       <Route
         path="agent/users"
-        element={guard("users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
       />
       <Route path="stakeholder/providers" element={<ProviderDirectory />} />
       <Route path="stakeholder/requests" element={<OwnRequests />} />
       <Route
         path="stakeholder/users"
-        element={guard("users:read", <UsersPage />, { title: "Users" })}
+        element={guard("own-users:read", <UsersPage />, { title: "Users" })}
       />
       <Route path="*" element={<NotFound />} />
     </Routes>

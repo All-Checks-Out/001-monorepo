@@ -39,7 +39,7 @@ export const FormDesignRouteContent = ({ hostContext }: RemoteAppProps) => {
     <Routes>
       <Route
         index
-        element={guard("forms:read", <AssociationFormsPage />, {
+        element={guard("association-forms:read", <AssociationFormsPage />, {
           title: "Association Forms",
         })}
       />

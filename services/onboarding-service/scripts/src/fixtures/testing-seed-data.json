@@ -34,16 +34,17 @@
       "email": "prudence.paperwork@example.test",
       "status": "invited",
       "permissions": [
-        "provider-requests:read",
-        "provider-requests:approve",
-        "system-data:read",
-        "users:read",
-        "users:invite",
-        "user-permissions:change",
-        "ddq-packs:read",
-        "ddq-packs:edit",
-        "forms:read",
-        "forms:edit"
+        "association-provider-requests:read",
+        "association-provider-requests:approve",
+        "all-corporations:read",
+        "all-users:read",
+        "own-users:read",
+        "own-users:invite",
+        "own-user-permissions:change",
+        "association-ddq-packs:read",
+        "association-ddq-packs:edit",
+        "association-forms:read",
+        "association-forms:edit"
       ]
     },
     {
@@ -52,17 +53,17 @@
       "email": "arthur.uptick@example.test",
       "status": "invited",
       "permissions": [
-        "agent-requests:read",
-        "agent-requests:approve",
-        "stakeholder-requests:read",
-        "stakeholder-requests:approve",
-        "users:read",
-        "users:invite",
-        "user-permissions:change",
-        "ddq-packs:add-new",
-        "ddq-packs:perform-checks",
-        "ddq-packs:review-checks",
-        "ddq-packs:approve-checks"
+        "provider-agent-requests:read",
+        "provider-agent-requests:approve",
+        "provider-stakeholder-requests:read",
+        "provider-stakeholder-requests:approve",
+        "own-users:read",
+        "own-users:invite",
+        "own-user-permissions:change",
+        "provider-ddq-packs:add-new",
+        "provider-ddq-packs:perform-checks",
+        "provider-ddq-packs:review-checks",
+        "provider-ddq-packs:approve-checks"
       ]
     },
     {
@@ -71,9 +72,9 @@
       "email": "tess.ticketplease@example.test",
       "status": "invited",
       "permissions": [
-        "ddq-packs:add-new",
-        "ddq-packs:perform-checks",
-        "ddq-packs:review-checks"
+        "provider-ddq-packs:add-new",
+        "provider-ddq-packs:perform-checks",
+        "provider-ddq-packs:review-checks"
       ]
     },
     {
@@ -82,9 +83,9 @@
       "email": "albert.allegedly@example.test",
       "status": "invited",
       "permissions": [
-        "users:read",
-        "users:invite",
-        "user-permissions:change"
+        "own-users:read",
+        "own-users:invite",
+        "own-user-permissions:change"
       ]
     },
     {
@@ -100,9 +101,9 @@
       "email": "barbara.binoculars@example.test",
       "status": "invited",
       "permissions": [
-        "users:read",
-        "users:invite",
-        "user-permissions:change"
+        "own-users:read",
+        "own-users:invite",
+        "own-user-permissions:change"
       ]
     },
     {
@@ -118,10 +119,11 @@
       "email": "miles.minutes@example.test",
       "status": "invited",
       "permissions": [
-        "provider-requests:read",
-        "system-data:read",
-        "ddq-packs:read",
-        "ddq-packs:edit"
+        "association-provider-requests:read",
+        "all-corporations:read",
+        "all-users:read",
+        "association-ddq-packs:read",
+        "association-ddq-packs:edit"
       ]
     }
   ],

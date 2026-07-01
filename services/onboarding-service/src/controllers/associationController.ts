@@ -73,7 +73,7 @@ export async function getAssociationCorporationApplications(req: Request, res: R
   const context = await requireAssociationUserWithPermission(
     req,
     res,
-    "provider-requests:read",
+    "association-provider-requests:read",
   );
   if (!context) return;
 
@@ -89,7 +89,7 @@ export async function approveAssociationCorporationApplication(req: Request, res
   const context = await requireAssociationUserWithPermission(
     req,
     res,
-    "provider-requests:approve",
+    "association-provider-requests:approve",
   );
   if (!context) return;
 
@@ -108,7 +108,7 @@ export async function rejectAssociationCorporationApplication(req: Request, res:
   const context = await requireAssociationUserWithPermission(
     req,
     res,
-    "provider-requests:approve",
+    "association-provider-requests:approve",
   );
   if (!context) return;
 
@@ -124,7 +124,11 @@ export async function rejectAssociationCorporationApplication(req: Request, res:
 }
 
 export async function getAssociationCorporations(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "system-data:read");
+  const context = await requireAssociationUserWithPermission(
+    req,
+    res,
+    "all-corporations:read",
+  );
   if (!context) return;
 
   try {
@@ -136,7 +140,11 @@ export async function getAssociationCorporations(req: Request, res: Response) {
 }
 
 export async function getAssociationUsers(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "system-data:read");
+  const context = await requireAssociationUserWithPermission(
+    req,
+    res,
+    "all-users:read",
+  );
   if (!context) return;
 
   try {
@@ -151,7 +159,7 @@ export async function getAssociationAccessRequests(req: Request, res: Response) 
   const context = await requireAssociationUserWithPermission(
     req,
     res,
-    "provider-requests:read",
+    "association-provider-requests:read",
   );
   if (!context) return;
 
@@ -167,7 +175,7 @@ export async function approveAssociationAccessRequest(req: Request, res: Respons
   const context = await requireAssociationUserWithPermission(
     req,
     res,
-    "provider-requests:approve",
+    "association-provider-requests:approve",
   );
   if (!context) return;
 
@@ -186,7 +194,7 @@ export async function rejectAssociationAccessRequest(req: Request, res: Response
   const context = await requireAssociationUserWithPermission(
     req,
     res,
-    "provider-requests:approve",
+    "association-provider-requests:approve",
   );
   if (!context) return;
 
@@ -202,7 +210,7 @@ export async function rejectAssociationAccessRequest(req: Request, res: Response
 }
 
 export async function listAssociationDDQPacks(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:read");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:read");
   if (!context) return;
 
   try {
@@ -214,7 +222,7 @@ export async function listAssociationDDQPacks(req: Request, res: Response) {
 }
 
 export async function readAssociationDDQPack(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:read");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:read");
   if (!context) return;
 
   const id = parseId(req, res);
@@ -229,7 +237,7 @@ export async function readAssociationDDQPack(req: Request, res: Response) {
 }
 
 export async function createAssociationDDQPackController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const body = parseBody(req, res, packBodySchema);
@@ -248,7 +256,7 @@ export async function createAssociationDDQPackController(req: Request, res: Resp
 }
 
 export async function updateAssociationDDQPackController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const id = parseId(req, res);
@@ -270,7 +278,7 @@ export async function updateAssociationDDQPackController(req: Request, res: Resp
 }
 
 export async function saveAssociationDDQPackDraftController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const packId = parsePackId(req, res);
@@ -300,7 +308,7 @@ export async function saveAssociationDDQPackDraftController(req: Request, res: R
 }
 
 export async function changeAssociationDDQPackStatusController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const id = parseId(req, res);
@@ -318,7 +326,7 @@ export async function changeAssociationDDQPackStatusController(req: Request, res
 }
 
 export async function deleteAssociationDDQPackController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const id = parseId(req, res);
@@ -333,7 +341,7 @@ export async function deleteAssociationDDQPackController(req: Request, res: Resp
 }
 
 export async function listAssociationDDQPackItems(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:read");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:read");
   if (!context) return;
 
   const packId = parsePackId(req, res);
@@ -348,7 +356,7 @@ export async function listAssociationDDQPackItems(req: Request, res: Response) {
 }
 
 export async function createAssociationDDQPackItemController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const packId = parsePackId(req, res);
@@ -376,7 +384,7 @@ export async function createAssociationDDQPackItemController(req: Request, res: 
 }
 
 export async function updateAssociationDDQPackItemController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const packId = parsePackId(req, res);
@@ -402,7 +410,7 @@ export async function updateAssociationDDQPackItemController(req: Request, res: 
 }
 
 export async function deleteAssociationDDQPackItemController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "ddq-packs:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-ddq-packs:edit");
   if (!context) return;
 
   const packId = parsePackId(req, res);
@@ -420,7 +428,7 @@ export async function deleteAssociationDDQPackItemController(req: Request, res: 
 }
 
 export async function listAssociationFormTemplates(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "forms:read");
+  const context = await requireAssociationUserWithPermission(req, res, "association-forms:read");
   if (!context) return;
 
   try {
@@ -432,7 +440,7 @@ export async function listAssociationFormTemplates(req: Request, res: Response) 
 }
 
 export async function readAssociationFormTemplate(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "forms:read");
+  const context = await requireAssociationUserWithPermission(req, res, "association-forms:read");
   if (!context) return;
 
   const id = parseId(req, res);
@@ -447,7 +455,7 @@ export async function readAssociationFormTemplate(req: Request, res: Response) {
 }
 
 export async function createAssociationFormTemplateController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "forms:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-forms:edit");
   if (!context) return;
 
   const body = parseBody(req, res, formTemplateBodySchema);
@@ -466,7 +474,7 @@ export async function createAssociationFormTemplateController(req: Request, res:
 }
 
 export async function updateAssociationFormTemplateController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "forms:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-forms:edit");
   if (!context) return;
 
   const id = parseId(req, res);
@@ -488,7 +496,7 @@ export async function updateAssociationFormTemplateController(req: Request, res:
 }
 
 export async function deleteAssociationFormTemplateController(req: Request, res: Response) {
-  const context = await requireAssociationUserWithPermission(req, res, "forms:edit");
+  const context = await requireAssociationUserWithPermission(req, res, "association-forms:edit");
   if (!context) return;
 
   const id = parseId(req, res);

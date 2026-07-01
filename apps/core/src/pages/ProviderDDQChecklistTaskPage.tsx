@@ -155,11 +155,11 @@ export const ProviderDDQChecklistTaskPage = () => {
   const numericPackId = Number(packId);
   const numericTaskId = Number(taskId);
   const { hasPermission } = useCurrentUser();
-  const canPerformChecklist = hasPermission("ddq-packs:perform-checks");
+  const canPerformChecklist = hasPermission("provider-ddq-packs:perform-checks");
   const canViewChecklist =
     canPerformChecklist ||
-    hasPermission("ddq-packs:review-checks") ||
-    hasPermission("ddq-packs:approve-checks");
+    hasPermission("provider-ddq-packs:review-checks") ||
+    hasPermission("provider-ddq-packs:approve-checks");
 
   const [state, setState] =
     useState<ProviderDDQChecklistTaskDetailResponse | null>(null);

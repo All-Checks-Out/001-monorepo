@@ -67,9 +67,9 @@ describe("provider DDQ pack permissions", () => {
     vi.mocked(listDDQPackItems).mockResolvedValue([providerPackItem]);
   });
 
-  it("allows provider users with ddq-packs:add-new to list available packs", async () => {
+  it("allows provider users with provider-ddq-packs:add-new to list available packs", async () => {
     const result = await getAvailableProviderDDQPacks(
-      providerContext(["ddq-packs:add-new"]),
+      providerContext(["provider-ddq-packs:add-new"]),
     );
 
     expect(result).toEqual({
@@ -90,7 +90,7 @@ describe("provider DDQ pack permissions", () => {
     );
   });
 
-  it("rejects provider users without ddq-packs:add-new from listing available packs", async () => {
+  it("rejects provider users without provider-ddq-packs:add-new from listing available packs", async () => {
     await expect(getAvailableProviderDDQPacks(providerContext([]))).rejects.toMatchObject({
       status: 403,
       message: "Permission required.",
@@ -100,9 +100,9 @@ describe("provider DDQ pack permissions", () => {
     expect(listAvailableProviderDDQPacks).not.toHaveBeenCalled();
   });
 
-  it("allows provider users with ddq-packs:add-new to preview pack items", async () => {
+  it("allows provider users with provider-ddq-packs:add-new to preview pack items", async () => {
     const result = await getProviderDDQPackItems(
-      providerContext(["ddq-packs:add-new"]),
+      providerContext(["provider-ddq-packs:add-new"]),
       providerPack.id,
     );
 
@@ -121,7 +121,7 @@ describe("provider DDQ pack permissions", () => {
     expect(listDDQPackItems).toHaveBeenCalledWith(expect.anything(), providerPack.id);
   });
 
-  it("rejects provider users without ddq-packs:add-new from previewing pack items", async () => {
+  it("rejects provider users without provider-ddq-packs:add-new from previewing pack items", async () => {
     await expect(
       getProviderDDQPackItems(providerContext([]), providerPack.id),
     ).rejects.toMatchObject({

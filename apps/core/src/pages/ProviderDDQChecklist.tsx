@@ -60,11 +60,11 @@ const ProviderDDQChecklist = () => {
   const { packId } = useParams();
   const numericPackId = Number(packId);
   const { hasPermission } = useCurrentUser();
-  const canPerformChecklist = hasPermission("ddq-packs:perform-checks");
+  const canPerformChecklist = hasPermission("provider-ddq-packs:perform-checks");
   const canViewChecklist =
     canPerformChecklist ||
-    hasPermission("ddq-packs:review-checks") ||
-    hasPermission("ddq-packs:approve-checks");
+    hasPermission("provider-ddq-packs:review-checks") ||
+    hasPermission("provider-ddq-packs:approve-checks");
   const [state, setState] = useState<ChecklistState | null>(null);
   const [loading, setLoading] = useState(false);
   const [missingChecklist, setMissingChecklist] = useState(false);

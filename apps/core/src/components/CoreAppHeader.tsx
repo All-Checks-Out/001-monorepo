@@ -93,14 +93,14 @@ function getCoreHeaderNavItems(context: HeaderNavContext): HeaderNavItem[] {
   }
 
   if (context.corporationType === "ASSOCIATION") {
-    if (context.hasPermission("ddq-packs:read")) {
+    if (context.hasPermission("association-ddq-packs:read")) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.associationDDQPacks),
         label: "DDQ Packs",
         activePaths: toCoreShellPaths([CORE_ROUTES.associationDDQPacks]),
       });
     }
-    if (context.hasPermission("provider-requests:read")) {
+    if (context.hasPermission("association-provider-requests:read")) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.associationProviders),
         label: "Requests",
@@ -110,14 +110,17 @@ function getCoreHeaderNavItems(context: HeaderNavContext): HeaderNavItem[] {
         ]),
       });
     }
-    if (context.hasPermission("users:read")) {
+    if (context.hasPermission("own-users:read")) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.associationUsers),
         label: "Users",
         activePaths: toCoreShellPaths([CORE_ROUTES.associationUsers]),
       });
     }
-    if (context.hasPermission("system-data:read")) {
+    if (
+      context.hasPermission("all-corporations:read") &&
+      context.hasPermission("all-users:read")
+    ) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.associationSystemData),
         label: "System Data",
@@ -133,8 +136,8 @@ function getCoreHeaderNavItems(context: HeaderNavContext): HeaderNavItem[] {
       activePaths: toCoreShellPaths([CORE_ROUTES.providerDDQPacks]),
     });
     if (
-      context.hasPermission("agent-requests:read") ||
-      context.hasPermission("stakeholder-requests:read")
+      context.hasPermission("provider-agent-requests:read") ||
+      context.hasPermission("provider-stakeholder-requests:read")
     ) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.providerSetupRequests),
@@ -142,7 +145,7 @@ function getCoreHeaderNavItems(context: HeaderNavContext): HeaderNavItem[] {
         activePaths: toCoreShellPaths([CORE_ROUTES.providerSetupRequests]),
       });
     }
-    if (context.hasPermission("users:read")) {
+    if (context.hasPermission("own-users:read")) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.providerUsers),
         label: "Users",
@@ -157,7 +160,7 @@ function getCoreHeaderNavItems(context: HeaderNavContext): HeaderNavItem[] {
       label: "Providers",
       activePaths: toCoreShellPaths([CORE_ROUTES.agentProviders]),
     });
-    if (context.hasPermission("users:read")) {
+    if (context.hasPermission("own-users:read")) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.agentUsers),
         label: "Users",
@@ -172,7 +175,7 @@ function getCoreHeaderNavItems(context: HeaderNavContext): HeaderNavItem[] {
       label: "Providers",
       activePaths: toCoreShellPaths([CORE_ROUTES.stakeholderProviders]),
     });
-    if (context.hasPermission("users:read")) {
+    if (context.hasPermission("own-users:read")) {
       navItems.push({
         to: toCoreShellPath(CORE_ROUTES.stakeholderUsers),
         label: "Users",

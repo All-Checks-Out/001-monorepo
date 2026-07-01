@@ -60,11 +60,11 @@ const ProviderDDQPacks = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const canViewChecklist =
-    hasPermission("ddq-packs:perform-checks") ||
-    hasPermission("ddq-packs:review-checks") ||
-    hasPermission("ddq-packs:approve-checks");
-  const canPerformChecklist = hasPermission("ddq-packs:perform-checks");
-  const canAddDDQPacks = hasPermission("ddq-packs:add-new");
+    hasPermission("provider-ddq-packs:perform-checks") ||
+    hasPermission("provider-ddq-packs:review-checks") ||
+    hasPermission("provider-ddq-packs:approve-checks");
+  const canPerformChecklist = hasPermission("provider-ddq-packs:perform-checks");
+  const canAddDDQPacks = hasPermission("provider-ddq-packs:add-new");
 
   async function loadProviderPacks() {
     setLoadingProviderPacks(true);

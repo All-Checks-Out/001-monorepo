@@ -579,7 +579,7 @@ export async function getProviderDDQPacks(_context: CurrentUserContext) {
 }
 
 export async function getAvailableProviderDDQPacks(context: CurrentUserContext) {
-  requirePermission(context, "ddq-packs:add-new");
+  requirePermission(context, "provider-ddq-packs:add-new");
 
   const client = await createDbClient();
 
@@ -595,7 +595,7 @@ export async function addProviderDDQPack(
   context: CurrentUserContext,
   ddqPackId: number,
 ) {
-  requirePermission(context, "ddq-packs:add-new");
+  requirePermission(context, "provider-ddq-packs:add-new");
 
   const client = await createDbClient();
 
@@ -624,7 +624,7 @@ export async function getProviderDDQPackItems(
   context: CurrentUserContext,
   packId: number,
 ) {
-  requirePermission(context, "ddq-packs:add-new");
+  requirePermission(context, "provider-ddq-packs:add-new");
 
   const client = await createDbClient();
 
@@ -660,9 +660,9 @@ const ddqChecklistTransitions: Record<
 };
 
 const providerChecklistViewPermissions: Permission[] = [
-  "ddq-packs:perform-checks",
-  "ddq-packs:review-checks",
-  "ddq-packs:approve-checks",
+  "provider-ddq-packs:perform-checks",
+  "provider-ddq-packs:review-checks",
+  "provider-ddq-packs:approve-checks",
 ];
 
 export async function getProviderDDQChecklist(
@@ -716,7 +716,7 @@ export async function createProviderDDQChecklistTaskEvidenceUploadUrl(
     tags: string[];
   },
 ) {
-  requirePermission(context, "ddq-packs:perform-checks");
+  requirePermission(context, "provider-ddq-packs:perform-checks");
 
   const normalizedTags = normalizeTags(input.tags);
   const objectKey = randomUUID();
@@ -884,7 +884,7 @@ export async function updateProviderDDQChecklistTaskEvidenceTags(
   evidenceId: number,
   tags: string[],
 ) {
-  requirePermission(context, "ddq-packs:perform-checks");
+  requirePermission(context, "provider-ddq-packs:perform-checks");
 
   const normalizedTags = normalizeTags(tags);
   const client = await createDbClient();
@@ -934,7 +934,7 @@ export async function saveProviderDDQChecklistTaskFormResponse(
   taskId: number,
   input: { values: FormValues },
 ) {
-  requirePermission(context, "ddq-packs:perform-checks");
+  requirePermission(context, "provider-ddq-packs:perform-checks");
 
   const client = await createDbClient();
 
@@ -978,7 +978,7 @@ export async function completeProviderDDQChecklistTaskFormResponse(
   taskId: number,
   input: { values: FormValues },
 ) {
-  requirePermission(context, "ddq-packs:perform-checks");
+  requirePermission(context, "provider-ddq-packs:perform-checks");
 
   const client = await createDbClient();
 
@@ -1033,7 +1033,7 @@ export async function getOrCreateProviderDDQChecklist(
   context: CurrentUserContext,
   packId: number,
 ) {
-  requirePermission(context, "ddq-packs:perform-checks");
+  requirePermission(context, "provider-ddq-packs:perform-checks");
 
   const client = await createDbClient();
 
@@ -1076,7 +1076,7 @@ export async function changeProviderDDQChecklistStatus(
   packId: number,
   action: DDQChecklistStatusAction,
 ) {
-  requirePermission(context, "ddq-packs:perform-checks");
+  requirePermission(context, "provider-ddq-packs:perform-checks");
 
   const client = await createDbClient();
 
@@ -1139,7 +1139,7 @@ export async function changeProviderDDQChecklistTaskStatus(
   taskId: number,
   action: DDQChecklistStatusAction,
 ) {
-  requirePermission(context, "ddq-packs:perform-checks");
+  requirePermission(context, "provider-ddq-packs:perform-checks");
 
   const client = await createDbClient();
 
@@ -1743,7 +1743,7 @@ function transitionDDQChecklistStatus(
 }
 
 function requirePermission(context: CurrentUserContext, permission: Permission) {
-  if (!hasPermission(context, permission)) {
+  if (!hasPermission(toPermissionContext(context), permission)) {
     throw new ServiceError(403, "Permission required.");
   }
 }
@@ -1752,7 +1752,8 @@ function requireAnyPermission(
   context: CurrentUserContext,
   permissions: Permission[],
 ) {
-  if (!permissions.some((permission) => hasPermission(context, permission))) {
+  const permissionContext = toPermissionContext(context);
+  if (!permissions.some((permission) => hasPermission(permissionContext, permission))) {
     throw new ServiceError(403, "Permission required.");
   }
 }
@@ -1761,9 +1762,10 @@ function hasProviderApplicationReadPermission(
   context: CurrentUserContext,
   type: ApplicationType,
 ) {
+  const permissionContext = toPermissionContext(context);
   return type === "AGENT"
-    ? hasPermission(context, "agent-requests:read")
-    : hasPermission(context, "stakeholder-requests:read");
+    ? hasPermission(permissionContext, "provider-agent-requests:read")
+    : hasPermission(permissionContext, "provider-stakeholder-requests:read");
 }
 
 function requireProviderApplicationApprovePermission(
@@ -1772,7 +1774,7 @@ function requireProviderApplicationApprovePermission(
 ) {
   requirePermission(
     context,
-    type === "AGENT" ? "agent-requests:approve" : "stakeholder-requests:approve",
+    type === "AGENT" ? "provider-agent-requests:approve" : "provider-stakeholder-requests:approve",
   );
 }
 
@@ -1780,8 +1782,11 @@ function hasProviderAccessRequestReadPermission(
   context: CurrentUserContext,
   type: string,
 ) {
-  if (type === "AGENT") return hasPermission(context, "agent-requests:read");
-  if (type === "STAKEHOLDER") return hasPermission(context, "stakeholder-requests:read");
+  const permissionContext = toPermissionContext(context);
+  if (type === "AGENT") return hasPermission(permissionContext, "provider-agent-requests:read");
+  if (type === "STAKEHOLDER") {
+    return hasPermission(permissionContext, "provider-stakeholder-requests:read");
+  }
   return false;
 }
 
@@ -1790,16 +1795,23 @@ function requireProviderAccessRequestApprovePermission(
   type: string,
 ) {
   if (type === "AGENT") {
-    requirePermission(context, "agent-requests:approve");
+    requirePermission(context, "provider-agent-requests:approve");
     return;
   }
 
   if (type === "STAKEHOLDER") {
-    requirePermission(context, "stakeholder-requests:approve");
+    requirePermission(context, "provider-stakeholder-requests:approve");
     return;
   }
 
   throw new ServiceError(403, "Permission required.");
+}
+
+function toPermissionContext(context: CurrentUserContext) {
+  return {
+    user: context.user,
+    corporationType: context.corporation.type,
+  };
 }
 
 function totalChecklistTasks(counts: Record<DDQChecklistStatus, number>) {

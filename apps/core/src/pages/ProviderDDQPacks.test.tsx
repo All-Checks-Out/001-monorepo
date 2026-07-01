@@ -28,7 +28,7 @@ describe("ProviderDDQPacks", () => {
     vi.mocked(listProviderDDQPacks).mockResolvedValue({ packs: [] });
   });
 
-  it("hides the add DDQ Pack action when the user lacks ddq-packs:add-new", async () => {
+  it("hides the add DDQ Pack action when the user lacks provider-ddq-packs:add-new", async () => {
     mockCurrentUserPermissions([]);
 
     renderProviderDDQPacks();
@@ -37,8 +37,8 @@ describe("ProviderDDQPacks", () => {
     expect(screen.queryByRole("button", { name: "Add DDQ Pack" })).toBeNull();
   });
 
-  it("shows the add DDQ Pack action when the user has ddq-packs:add-new", async () => {
-    mockCurrentUserPermissions(["ddq-packs:add-new"]);
+  it("shows the add DDQ Pack action when the user has provider-ddq-packs:add-new", async () => {
+    mockCurrentUserPermissions(["provider-ddq-packs:add-new"]);
 
     renderProviderDDQPacks();
 

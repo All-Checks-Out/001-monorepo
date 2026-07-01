@@ -57,9 +57,9 @@ const ProviderSetupRequests = () => {
   const stakeholders = applications.filter(
     (application) => application.type === "STAKEHOLDER",
   );
-  const canApproveAgentRequests = hasPermission("agent-requests:approve");
+  const canApproveAgentRequests = hasPermission("provider-agent-requests:approve");
   const canApproveStakeholderRequests = hasPermission(
-    "stakeholder-requests:approve",
+    "provider-stakeholder-requests:approve",
   );
 
   return (

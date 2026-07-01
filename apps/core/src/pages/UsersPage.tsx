@@ -121,7 +121,7 @@ const UsersPage = () => {
 
   function permissionsCell(user: AppUser) {
     const canEdit =
-      hasPermission("user-permissions:change")
+      hasPermission("own-user-permissions:change")
       && user.id !== currentUser?.id;
 
     return (
@@ -169,7 +169,7 @@ const UsersPage = () => {
         }))}
         empty="No users."
       />
-      {hasPermission("users:invite") && (
+      {hasPermission("own-users:invite") && (
         <div className="grid max-w-xl gap-3 border-t pt-6">
           <h2 className="text-lg font-semibold">Invite user</h2>
           <Input

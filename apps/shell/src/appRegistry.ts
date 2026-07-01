@@ -22,7 +22,7 @@ export const shellApps: ShellApp[] = [
     label: "Forms",
     description: "Form design",
     path: "/form-design",
-    requiredPermission: "forms:read",
+    requiredPermission: "association-forms:read",
   },
 ];
 
