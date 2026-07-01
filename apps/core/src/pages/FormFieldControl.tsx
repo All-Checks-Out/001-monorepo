@@ -27,6 +27,7 @@ export function FormFieldControl({
   if (item.type === "select" || item.type === "radio") {
     return (
       <select
+        aria-label={item.label}
         className="h-9 rounded-md border border-input bg-background px-3 text-sm"
         value={typeof value === "string" ? value : ""}
         disabled={disabled}
@@ -45,6 +46,7 @@ export function FormFieldControl({
   if (item.type === "boolean") {
     return (
       <select
+        aria-label={item.label}
         className="h-9 rounded-md border border-input bg-background px-3 text-sm"
         value={typeof value === "boolean" ? String(value) : ""}
         disabled={disabled}

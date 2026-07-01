@@ -74,7 +74,7 @@ export const LocalLoginDialog = ({
           onValueChange={setSelectedUserId}
           disabled={loading || users.length === 0}
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label="Seeded user">
             <SelectValue placeholder={loading ? "Loading users..." : "Choose a user"} />
           </SelectTrigger>
           <SelectContent>

@@ -190,6 +190,23 @@ Everything a PR runs:
 pnpm run verify
 ```
 
+## UI Tests
+
+Run browser-level Playwright tests:
+
+```bash
+pnpm run test:e2e
+```
+
+The e2e runner starts local infrastructure, the local backend, and production-style frontend preview mode at `http://127.0.0.1:4173`. OrbStack/Docker must be available. To reuse already-started local services, set `ACO_E2E_SKIP_LOCAL_SETUP=1`.
+
+Headed and debug modes:
+
+```bash
+pnpm run test:e2e:headed
+pnpm run test:e2e:debug
+```
+
 ---
 
 ## Database

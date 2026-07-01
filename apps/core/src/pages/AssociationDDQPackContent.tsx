@@ -458,18 +458,21 @@ const AssociationDDQPackContent = () => {
       <div className="grid gap-3 border bg-muted/20 p-4">
         <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
           <Input
+            aria-label="Pack name"
             value={draft?.pack.name ?? ""}
             placeholder="Pack name"
             disabled={readOnly || loading || !draft}
             onChange={(event) => updatePack({ name: event.target.value })}
           />
           <Input
+            aria-label="Valid from"
             type="date"
             value={draft?.pack.valid_from ?? ""}
             disabled={readOnly || loading || !draft}
             onChange={(event) => updatePack({ valid_from: event.target.value })}
           />
           <Input
+            aria-label="Valid to"
             type="date"
             value={draft?.pack.valid_to ?? ""}
             disabled={readOnly || loading || !draft}
@@ -528,6 +531,7 @@ const AssociationDDQPackContent = () => {
           <h2 className="text-base font-medium">{formTitle}</h2>
           <div className="grid gap-3 sm:grid-cols-[1fr_1fr_2fr]">
             <select
+              aria-label="DDQ pack item type"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               value={form.kind === "checkpoint" ? "checkpoint" : form.task_type}
               disabled={loading || itemEditSession.mode === "edit" || isViewingItem}
@@ -544,6 +548,7 @@ const AssociationDDQPackContent = () => {
             </select>
             {form.kind === "ddq-task" && form.task_type === "document-upload" ? (
               <select
+                aria-label="Document type"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={form.document_type}
                 disabled={loading || isViewingItem}
@@ -562,6 +567,7 @@ const AssociationDDQPackContent = () => {
               </select>
             ) : form.kind === "ddq-task" && form.task_type === "form-completion" ? (
               <select
+                aria-label="Form template"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={form.form_template_id}
                 disabled={loading || formTemplatesLoading || isViewingItem}

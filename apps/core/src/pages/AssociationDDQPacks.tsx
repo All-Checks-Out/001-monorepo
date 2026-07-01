@@ -179,13 +179,25 @@ const AssociationDDQPacks = () => {
                 </>
               ) : (
                 <>
-                  <Button asChild size="icon-sm" variant="ghost" title="View pack">
+                  <Button
+                    asChild
+                    size="icon-sm"
+                    variant="ghost"
+                    title="View pack"
+                    aria-label={`View ${pack.name}`}
+                  >
                     <Link to={CORE_ROUTES.associationDDQPackReadOnly(pack.id)}>
                       <FileText className="size-4" />
                     </Link>
                   </Button>
                   {canEditDDQPacks && (
-                    <Button asChild size="icon-sm" variant="ghost" title="Edit pack">
+                    <Button
+                      asChild
+                      size="icon-sm"
+                      variant="ghost"
+                      title="Edit pack"
+                      aria-label={`Edit ${pack.name}`}
+                    >
                       <Link to={CORE_ROUTES.associationDDQPack(pack.id)}>
                         <Edit className="size-4" />
                       </Link>
@@ -199,6 +211,7 @@ const AssociationDDQPacks = () => {
                   variant="ghost"
                   type="button"
                   title={statusAction?.label ?? "Pack status"}
+                  aria-label={`${statusAction?.label ?? "Pack status"} for ${pack.name}`}
                   disabled={loading || hasActiveEdits || !statusAction}
                   onClick={() =>
                     statusAction && changePackStatus(pack, statusAction.action)
@@ -238,12 +251,14 @@ const AssociationDDQPacks = () => {
         <div className="grid gap-3 border bg-muted/20 p-4">
           <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
             <Input
+              aria-label="Pack name"
               value={form.name}
               placeholder="Pack name"
               disabled={loading}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
             />
             <Input
+              aria-label="Valid from"
               type="date"
               value={form.valid_from}
               disabled={loading}
@@ -252,6 +267,7 @@ const AssociationDDQPacks = () => {
               }
             />
             <Input
+              aria-label="Valid to"
               type="date"
               value={form.valid_to}
               disabled={loading}

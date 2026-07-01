@@ -24,6 +24,9 @@
     "stop:local": "bash scripts/local-stop.sh",
     "build": "pnpm -r build",
     "test": "pnpm -r --if-present test",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "PWDEBUG=1 playwright test --debug",
     "test:backend": "pnpm --filter @services/onboarding-service test",
     "test:frontend": "pnpm --filter @apps/core test",
     "docker:up": "bash scripts/local-docker-up.sh",
@@ -40,6 +43,7 @@
     "claude:review": "node scripts/claude-review.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "esbuild": "0.27.7"
   }
 }
