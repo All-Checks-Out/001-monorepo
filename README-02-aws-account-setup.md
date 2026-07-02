@@ -1,15 +1,15 @@
-# AWS Account Setup
+# 02 AWS Account Setup
 
-Use this guide when setting up a new All Checks Out AWS organization, or when a developer needs to point a local checkout at their own AWS account IDs.
-
-The repo expects four AWS accounts:
+## Required AWS Accounts
 
 - management
 - testing
 - staging
 - production
 
-## Create the AWS Organization
+---
+
+## Create The AWS Organization
 
 - create an AWS Organization
 - create four accounts:
@@ -20,14 +20,13 @@ The repo expects four AWS accounts:
 
 Important:
 
-- take care with the spelling and naming of these accounts
-- AWS accounts cannot be quickly deleted and recreated if you make a naming mistake
-- closed member accounts can remain visible in AWS Organizations for weeks, and AWS documentation currently says up to 90 days
+- take care with spelling and naming
+- AWS accounts cannot be quickly deleted and recreated
+- closed member accounts can remain visible in AWS Organizations for weeks
+- AWS documentation currently says closed member accounts can remain visible for up to 90 days
 - this applies even to accounts that were only just created
 
-Record the 12-digit account ID for each account. You will need these IDs later when configuring your local checkout.
-
-Example placeholders:
+Record each 12-digit account ID:
 
 ```text
 management: 111111111111
@@ -36,13 +35,14 @@ staging:    333333333333
 production: 444444444444
 ```
 
-Use your own real 12-digit account IDs. Do not commit real account IDs to the repo.
+Use your real account IDs. Do not commit real account IDs.
 
 ---
 
-## Create a Permission Set
+## Create A Permission Set
 
-- Identity Center → Permission sets → Create permission set
+Identity Center -> Permission sets -> Create permission set
+
 - Predefined permission set
 - AdministratorAccess
 - NEXT
@@ -50,24 +50,29 @@ Use your own real 12-digit account IDs. Do not commit real account IDs to the re
 - NEXT
 - CREATE
 
-Note:
+Expected result:
 
-- it will initially show **Not provisioned**
-- this is expected
+```text
+Not provisioned
+```
+
+This is expected.
 
 ---
 
-## Create a Group
+## Create A Group
 
-- Identity Center → Groups → Create group
+Identity Center -> Groups -> Create group
+
 - Group name = `new-group`
 - CREATE GROUP
 
 ---
 
-## Create a User
+## Create A User
 
-- Identity Center → Users → Add user
+Identity Center -> Users -> Add user
+
 - email = a real email address
 - first name = `New`
 - last name = `User`
@@ -77,45 +82,40 @@ Note:
 - NEXT
 - ADD USER
 
+Then:
+
 - press COPY
 - paste the clipboard into a temporary document
 - extract the one-time password
-
 - VIEW USER DETAILS
 - SEND EMAIL VERIFICATION LINK
 - SEND
 
 ---
 
-## Verify the User
+## Verify The User
 
 - open the verification email
 - press VERIFY
 - press LOGIN
-
 - username = `new-user`
 - password = one-time password
 - choose a new password
 
-Tip:
-
-- let Google save the password
-- change the username in Google Password Manager to `new-user`
-
 Expected result:
 
 - user is logged in
-- **no AWS accounts are visible**
+- no AWS accounts are visible
 
 This is correct.
 
 ---
 
-## Assign Management Account
+## Assign The Management Account
 
 - log back in to the AWS root account
 
-Identity Center → AWS Accounts
+Identity Center -> AWS Accounts
 
 - tick the management account
 - ASSIGN USERS OR GROUPS
@@ -126,17 +126,17 @@ Identity Center → AWS Accounts
 - NEXT
 - SUBMIT
 
-Optional checks
+Optional checks:
 
-- View Details → 1 successful assignment
-- Users → new-user → AWS Accounts
+- View Details -> 1 successful assignment
+- Users -> new-user -> AWS Accounts
 - management account shows `new-permission-set`
 
 ---
 
-## Assign Remaining Accounts
+## Assign The Remaining Accounts
 
-Repeat exactly the same steps for
+Repeat the same steps for:
 
 - testing
 - staging
@@ -146,41 +146,35 @@ Repeat exactly the same steps for
 
 ## Check Assignments
 
-Identity Center → AWS Accounts
+Identity Center -> AWS Accounts
 
-Each account should now show
+Each account should show:
 
 - AdministratorAccess
 - new-permission-set
 
 ---
 
-## Login as new-user
+## Login As `new-user`
 
-Identity Center → Dashboard
+Identity Center -> Dashboard
 
-Copy the **IPv4-only** AWS Access Portal URL
+Copy the IPv4-only AWS Access Portal URL.
 
 Example:
 
-```
+```text
 https://d-xxxxxxxxxxxx.awsapps.com/start
-```
-
-It always ends with:
-
-```
-/start
 ```
 
 Open that URL in a private/incognito window.
 
-Login as
+Login as:
 
-- username = `new-user`
-- password = your chosen password
-
-Initially you may need to press the **Refresh** button in the portal.
+```text
+username = new-user
+password = your chosen password
+```
 
 Expected result:
 
@@ -193,31 +187,57 @@ Expand any account.
 
 Expected result:
 
-```
+```text
 new-permission-set
 ```
 
-appears beneath the account.
+---
+
+## Configure AWS CLI SSO Profiles
+
+Run:
+
+```bash
+aws configure sso
+```
+
+Create these profiles:
+
+```text
+management
+testing
+staging
+production
+```
+
+Use:
+
+```text
+SSO role name: AdministratorAccess
+Default client Region: eu-west-2
+Default output format: json
+```
+
+Check login:
+
+```bash
+aws sso login --profile management
+aws sso login --profile testing
+aws sso login --profile staging
+aws sso login --profile production
+```
 
 ---
 
 ## Configure Local Account IDs
 
-After cloning or pulling the repo, configure your own AWS account IDs in your shell profile.
-
-Bash users should edit:
+Edit:
 
 ```text
 ~/.bash_profile
 ```
 
-Zsh users should edit:
-
-```text
-~/.zshrc
-```
-
-Add:
+Set your real 12-digit account IDs:
 
 ```bash
 export ACO24_MANAGEMENT_ACCOUNT_ID="111111111111"
@@ -226,43 +246,31 @@ export ACO24_STAGING_ACCOUNT_ID="333333333333"
 export ACO24_PRODUCTION_ACCOUNT_ID="444444444444"
 ```
 
-Replace the placeholder values with your real 12-digit account IDs.
-
-Bash users can reload with:
+Reload Bash:
 
 ```bash
 source ~/.bash_profile
 ```
 
-Zsh users can reload with:
-
-```bash
-source ~/.zshrc
-```
-
-Or open a new terminal.
-
-From the repo root, after `pnpm install`, generate the local TypeScript account config:
+Generate the local TypeScript account config:
 
 ```bash
 pnpm run aws:accounts-config
 ```
 
-This creates:
+Generated file:
 
 ```text
 packages/shared/aws-accounts/src/index.ts
 ```
 
-That file is generated from your shell environment and is ignored by git. It is used by the CDK apps so each developer can deploy to their own AWS accounts without changing source code.
-
-If any account ID is missing or is not exactly 12 digits, the command will fail with an error.
+The generated file is ignored by git.
 
 ---
 
 ## Bootstrap AWS Accounts
 
-Before deploying to AWS, log in to the relevant AWS SSO profiles:
+Login:
 
 ```bash
 aws sso login --profile management
@@ -271,7 +279,7 @@ aws sso login --profile staging
 aws sso login --profile production
 ```
 
-Bootstrap all accounts:
+Bootstrap:
 
 ```bash
 pnpm run bootstrap-up -- management
@@ -280,57 +288,25 @@ pnpm run bootstrap-up -- staging
 pnpm run bootstrap-up -- production
 ```
 
-Or bootstrap everything in one command:
+Or:
 
 ```bash
 pnpm run bootstrap-up -- all
 ```
 
-The bootstrap script reads the same `ACO24_*_ACCOUNT_ID` environment variables directly and validates that each value is exactly 12 digits.
-
----
-
-## Destroy Deployed Stacks
-
-Destroy deployed application and service stacks before deleting bootstrap resources.
-
-Testing:
-
-```bash
-aws sso login --profile management
-aws sso login --profile testing
-pnpm run destroy -- testing
-```
-
-Staging:
-
-```bash
-aws sso login --profile management
-aws sso login --profile staging
-pnpm run destroy -- staging
-```
-
-Production:
-
-```bash
-aws sso login --profile management
-aws sso login --profile production
-pnpm run destroy -- production
-```
-
-Production destroy asks you to type:
+Next:
 
 ```text
-destroy production infrastructure
+README-03-deploy-and-run-system.md
 ```
 
 ---
 
 ## Destroy Bootstrap Resources
 
-Only destroy bootstrap resources after deployed stacks have been destroyed.
+Destroy deployed stacks first.
 
-Log in to any profiles whose bootstrap resources you are deleting if your SSO sessions have expired.
+Then:
 
 ```bash
 pnpm run bootstrap-down -- testing
@@ -339,9 +315,7 @@ pnpm run bootstrap-down -- production
 pnpm run bootstrap-down -- management
 ```
 
-This deletes the CDK bootstrap stack in `eu-west-2` and `us-east-1` for each selected account, then runs cleanup for bootstrap buckets and container repositories.
-
-After this, any AWS account or organization deletion is done manually in AWS.
+---
 
 # Notes used to generate this file ...
 

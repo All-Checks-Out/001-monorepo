@@ -1,0 +1,20 @@
+export PS1="$ "
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
+# Default AWS region for manual AWS CLI commands.
+# No default AWS_PROFILE is set, so manual AWS commands must specify --profile.
+export AWS_REGION=eu-west-2
+export AWS_DEFAULT_REGION=eu-west-2
+
+# All Checks Out AWS account IDs.
+# Replace these values with your own 12-digit account IDs.
+export ACO24_MANAGEMENT_ACCOUNT_ID="111111111111"
+export ACO24_TESTING_ACCOUNT_ID="222222222222"
+export ACO24_STAGING_ACCOUNT_ID="333333333333"
+export ACO24_PRODUCTION_ACCOUNT_ID="444444444444"
+
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
