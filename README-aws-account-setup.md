@@ -18,6 +18,13 @@ The repo expects four AWS accounts:
   - staging
   - production
 
+Important:
+
+- take care with the spelling and naming of these accounts
+- AWS accounts cannot be quickly deleted and recreated if you make a naming mistake
+- closed member accounts can remain visible in AWS Organizations for weeks, and AWS documentation currently says up to 90 days
+- this applies even to accounts that were only just created
+
 Record the 12-digit account ID for each account. You will need these IDs later when configuring your local checkout.
 
 Example placeholders:
