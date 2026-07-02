@@ -54,9 +54,11 @@ winget install PostgreSQL.pgAdmin
 
 Open Docker Desktop.
 
-Enable WSL integration for your Ubuntu distribution.
+Enable WSL2 integration for your Ubuntu distribution.
 
 Run repo commands inside WSL2.
+
+Docker Desktop with WSL2 integration provides the local container runtime on Windows.
 
 ---
 
@@ -116,6 +118,17 @@ git config --global user.email "you@example.com"
 
 ## Create `.bash_profile`
 
+Clone the repo first.
+
+Example:
+
+```bash
+mkdir -p ~/src
+cd ~/src
+git clone https://github.com/All-Checks-Out/001-monorepo.git
+cd 001-monorepo
+```
+
 From the repo root inside WSL2:
 
 ```bash
@@ -140,6 +153,8 @@ Reload Bash:
 ```bash
 source ~/.bash_profile
 ```
+
+Open a new Ubuntu terminal before continuing.
 
 ---
 

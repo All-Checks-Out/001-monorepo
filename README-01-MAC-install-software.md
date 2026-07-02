@@ -78,6 +78,17 @@ git config --global user.email "you@example.com"
 
 ## Create `.bash_profile`
 
+Clone the repo first.
+
+Example:
+
+```bash
+mkdir -p ~/src
+cd ~/src
+git clone https://github.com/All-Checks-Out/001-monorepo.git
+cd 001-monorepo
+```
+
 From the repo root:
 
 ```bash
@@ -103,6 +114,8 @@ Reload Bash:
 source ~/.bash_profile
 ```
 
+Open a new terminal before continuing.
+
 ---
 
 ## Check Versions
@@ -117,6 +130,8 @@ flyway --version
 jq --version
 docker --version
 ```
+
+OrbStack provides the `docker` command used by the local scripts.
 
 `pnpm` should be:
 

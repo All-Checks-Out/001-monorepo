@@ -19,6 +19,8 @@ README-01-MAC-install-software.md
 
 Use this first on a new macOS computer.
 
+macOS local containers use OrbStack.
+
 ## 01 Install Software On Windows
 
 ```text
@@ -26,6 +28,8 @@ README-01-WINDOWS-install-software.md
 ```
 
 Use this first on a new Windows computer with WSL2.
+
+Windows local containers use Docker Desktop with WSL2 integration.
 
 ## 02 AWS Account Setup
 

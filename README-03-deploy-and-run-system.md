@@ -33,6 +33,13 @@ packages/shared/aws-accounts/src/index.ts
 
 ## Run Locally
 
+Install the platform container runtime first:
+
+```text
+macOS:   OrbStack
+Windows: Docker Desktop with WSL2 integration
+```
+
 Start local infrastructure:
 
 ```bash
