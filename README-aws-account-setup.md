@@ -106,7 +106,7 @@ This is correct.
 
 ## Assign Management Account
 
-- log back in as the administrator
+- log back in to the AWS root account
 
 Identity Center → AWS Accounts
 
