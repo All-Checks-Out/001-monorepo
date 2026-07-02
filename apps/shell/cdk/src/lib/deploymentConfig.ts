@@ -1,4 +1,5 @@
 import * as cdk from "aws-cdk-lib";
+import { AWS_ACCOUNTS } from "@shared/aws-accounts";
 
 export type DeploymentStage = "testing" | "staging" | "production";
 
@@ -16,13 +17,13 @@ export type StageConfig = {
 
 export const ROOT_DOMAIN = "aco24.net";
 export const ORG_REDIRECT_DOMAIN = "aco24.org";
-export const MANAGEMENT_ACCOUNT = "305069434672";
+export const MANAGEMENT_ACCOUNT = AWS_ACCOUNTS.management;
 const REGION = "eu-west-2";
 export const CLOUDFRONT_REGION = "us-east-1";
 
 const stageConfigs: Record<DeploymentStage, StageConfig> = {
   testing: {
-    account: "175616158444",
+    account: AWS_ACCOUNTS.testing,
     websiteAccount: MANAGEMENT_ACCOUNT,
     region: REGION,
     websiteRegion: CLOUDFRONT_REGION,
@@ -33,7 +34,7 @@ const stageConfigs: Record<DeploymentStage, StageConfig> = {
     stackSuffix: "testing",
   },
   staging: {
-    account: "668723997661",
+    account: AWS_ACCOUNTS.staging,
     websiteAccount: MANAGEMENT_ACCOUNT,
     region: REGION,
     websiteRegion: CLOUDFRONT_REGION,
@@ -44,7 +45,7 @@ const stageConfigs: Record<DeploymentStage, StageConfig> = {
     stackSuffix: "staging",
   },
   production: {
-    account: "989793932938",
+    account: AWS_ACCOUNTS.production,
     websiteAccount: MANAGEMENT_ACCOUNT,
     region: REGION,
     websiteRegion: CLOUDFRONT_REGION,

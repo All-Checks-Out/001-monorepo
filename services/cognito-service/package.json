@@ -10,6 +10,7 @@
     "destroy": "cdk destroy cognito-stack-$ACO24_STAGE --force --require-approval never --app \"tsx ./cdk/src/bin/cognito.ts\" --context stage=$ACO24_STAGE"
   },
   "dependencies": {
+    "@shared/aws-accounts": "workspace:*",
     "@aws-sdk/client-cognito-identity-provider": "^3.1063.0",
     "@aws-sdk/client-ssm": "^3.1063.0",
     "aws-cdk-lib": "2.235.1",

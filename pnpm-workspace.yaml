@@ -7,6 +7,7 @@ packages:
   - "services/document-analysis-service"
   - "services/onboarding-service"
   - "packages/backend/events"
+  - "packages/shared/aws-accounts"
   - "packages/shared/permissions"
   - "packages/frontend/api"
   - "packages/frontend/app-ui"

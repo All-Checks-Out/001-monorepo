@@ -1,4 +1,5 @@
 import * as cdk from "aws-cdk-lib";
+import { AWS_ACCOUNTS } from "@shared/aws-accounts";
 
 export type DeploymentStage = "testing" | "staging" | "production";
 
@@ -15,21 +16,21 @@ const REGION = "eu-west-2";
 const stageConfigs: Record<DeploymentStage, StageConfig> = {
   testing: {
     env: {
-      account: "175616158444",
+      account: AWS_ACCOUNTS.testing,
       region: REGION,
     },
     stackSuffix: "testing",
   },
   staging: {
     env: {
-      account: "668723997661",
+      account: AWS_ACCOUNTS.staging,
       region: REGION,
     },
     stackSuffix: "staging",
   },
   production: {
     env: {
-      account: "989793932938",
+      account: AWS_ACCOUNTS.production,
       region: REGION,
     },
     stackSuffix: "production",

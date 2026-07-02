@@ -1,10 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MANAGEMENT_ACCOUNT_ID="305069434672"
-TESTING_ACCOUNT_ID="175616158444"
-STAGING_ACCOUNT_ID="668723997661"
-PRODUCTION_ACCOUNT_ID="989793932938"
+validate_account_id() {
+  local variable_name="$1"
+  local value="${!variable_name:-}"
+
+  if [[ -z "$value" ]]; then
+    echo "Missing required environment variable: $variable_name" >&2
+    exit 1
+  fi
+
+  if [[ ! "$value" =~ ^[0-9]{12}$ ]]; then
+    echo "Invalid $variable_name: expected exactly 12 digits." >&2
+    exit 1
+  fi
+}
+
+validate_account_id "ACO24_MANAGEMENT_ACCOUNT_ID"
+validate_account_id "ACO24_TESTING_ACCOUNT_ID"
+validate_account_id "ACO24_STAGING_ACCOUNT_ID"
+validate_account_id "ACO24_PRODUCTION_ACCOUNT_ID"
+
+MANAGEMENT_ACCOUNT_ID="$ACO24_MANAGEMENT_ACCOUNT_ID"
+TESTING_ACCOUNT_ID="$ACO24_TESTING_ACCOUNT_ID"
+STAGING_ACCOUNT_ID="$ACO24_STAGING_ACCOUNT_ID"
+PRODUCTION_ACCOUNT_ID="$ACO24_PRODUCTION_ACCOUNT_ID"
 
 WORKLOAD_REGION="eu-west-2"
 CLOUDFRONT_REGION="us-east-1"

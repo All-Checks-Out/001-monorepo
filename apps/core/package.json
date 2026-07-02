@@ -20,6 +20,7 @@
     "@frontend/api": "workspace:*",
     "@frontend/auth": "workspace:*",
     "@frontend/shadcn": "workspace:*",
+    "@shared/aws-accounts": "workspace:*",
     "@shared/permissions": "workspace:*",
     "@module-federation/bridge-react": "^2.6.0",
     "@module-federation/vite": "^1.16.11",

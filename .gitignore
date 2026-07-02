@@ -5,6 +5,8 @@ dist-local-preview/
 .mf/
 cdk.out/
 cdk.context.json
+*.cdk.context.json
+packages/shared/aws-accounts/src/index.ts
 *.log
 .DS_Store
 .env

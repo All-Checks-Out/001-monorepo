@@ -22,6 +22,7 @@
     "url": "bash scripts/root-command.sh url",
     "start:local": "bash scripts/local-start.sh",
     "stop:local": "bash scripts/local-stop.sh",
+    "aws:accounts-config": "bash scripts/generate-aws-accounts-config.sh",
     "build": "pnpm -r build",
     "unit-test:frontend": "pnpm exec vitest run --project @shared/permissions --project @apps/core",
     "unit-test:backend": "pnpm exec vitest run --project @services/onboarding-service",

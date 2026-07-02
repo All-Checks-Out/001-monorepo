@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@backend/events": "workspace:*",
+    "@shared/aws-accounts": "workspace:*",
     "@shared/permissions": "workspace:*",
     "aws-cdk-lib": "2.235.1",
     "constructs": "10.4.5",
