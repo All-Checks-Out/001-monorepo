@@ -198,13 +198,13 @@ appears beneath the account.
 
 After cloning or pulling the repo, configure your own AWS account IDs in your shell profile.
 
-For Bash this is usually:
+Bash users should edit:
 
 ```text
 ~/.bash_profile
 ```
 
-For Zsh this is usually:
+Zsh users should edit:
 
 ```text
 ~/.zshrc
@@ -221,11 +221,19 @@ export ACO24_PRODUCTION_ACCOUNT_ID="444444444444"
 
 Replace the placeholder values with your real 12-digit account IDs.
 
-Reload your shell profile, or open a new terminal. For example:
+Bash users can reload with:
+
+```bash
+source ~/.bash_profile
+```
+
+Zsh users can reload with:
 
 ```bash
 source ~/.zshrc
 ```
+
+Or open a new terminal.
 
 From the repo root, after `pnpm install`, generate the local TypeScript account config:
 

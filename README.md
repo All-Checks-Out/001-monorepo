@@ -44,7 +44,11 @@ pnpm install
 
 ## Configure AWS Account IDs
 
-Each developer configures their own AWS account IDs locally. Add these exports to your shell profile, such as `~/.bash_profile` or `~/.zshrc`:
+Each developer configures their own AWS account IDs locally.
+
+Bash users should add these exports to `~/.bash_profile`.
+
+Zsh users should add these exports to `~/.zshrc`.
 
 ```bash
 export ACO24_MANAGEMENT_ACCOUNT_ID="111111111111"
@@ -53,7 +57,21 @@ export ACO24_STAGING_ACCOUNT_ID="333333333333"
 export ACO24_PRODUCTION_ACCOUNT_ID="444444444444"
 ```
 
-Replace the placeholders with your real 12-digit AWS account IDs, then reload your shell or open a new terminal.
+Replace the placeholders with your real 12-digit AWS account IDs.
+
+Bash users can reload with:
+
+```bash
+source ~/.bash_profile
+```
+
+Zsh users can reload with:
+
+```bash
+source ~/.zshrc
+```
+
+Or open a new terminal.
 
 From the repo root, generate the local TypeScript account config:
 
