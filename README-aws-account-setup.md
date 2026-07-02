@@ -1,4 +1,13 @@
-# README-new-aws-organization.md
+# AWS Account Setup
+
+Use this guide when setting up a new All Checks Out AWS organization, or when a developer needs to point a local checkout at their own AWS account IDs.
+
+The repo expects four AWS accounts:
+
+- management
+- testing
+- staging
+- production
 
 ## Create the AWS Organization
 
@@ -8,6 +17,19 @@
   - testing
   - staging
   - production
+
+Record the 12-digit account ID for each account. You will need these IDs later when configuring your local checkout.
+
+Example placeholders:
+
+```text
+management: 111111111111
+testing:    222222222222
+staging:    333333333333
+production: 444444444444
+```
+
+Use your own real 12-digit account IDs. Do not commit real account IDs to the repo.
 
 ---
 
@@ -169,6 +191,142 @@ new-permission-set
 ```
 
 appears beneath the account.
+
+---
+
+## Configure Local Account IDs
+
+After cloning or pulling the repo, configure your own AWS account IDs in your shell profile.
+
+For Bash this is usually:
+
+```text
+~/.bash_profile
+```
+
+For Zsh this is usually:
+
+```text
+~/.zshrc
+```
+
+Add:
+
+```bash
+export ACO24_MANAGEMENT_ACCOUNT_ID="111111111111"
+export ACO24_TESTING_ACCOUNT_ID="222222222222"
+export ACO24_STAGING_ACCOUNT_ID="333333333333"
+export ACO24_PRODUCTION_ACCOUNT_ID="444444444444"
+```
+
+Replace the placeholder values with your real 12-digit account IDs.
+
+Reload your shell profile, or open a new terminal. For example:
+
+```bash
+source ~/.zshrc
+```
+
+From the repo root, after `pnpm install`, generate the local TypeScript account config:
+
+```bash
+pnpm run aws:accounts-config
+```
+
+This creates:
+
+```text
+packages/shared/aws-accounts/src/index.ts
+```
+
+That file is generated from your shell environment and is ignored by git. It is used by the CDK apps so each developer can deploy to their own AWS accounts without changing source code.
+
+If any account ID is missing or is not exactly 12 digits, the command will fail with an error.
+
+---
+
+## Bootstrap AWS Accounts
+
+Before deploying to AWS, log in to the relevant AWS SSO profiles:
+
+```bash
+aws sso login --profile management
+aws sso login --profile testing
+aws sso login --profile staging
+aws sso login --profile production
+```
+
+Bootstrap all accounts:
+
+```bash
+pnpm run bootstrap-up -- management
+pnpm run bootstrap-up -- testing
+pnpm run bootstrap-up -- staging
+pnpm run bootstrap-up -- production
+```
+
+Or bootstrap everything in one command:
+
+```bash
+pnpm run bootstrap-up -- all
+```
+
+The bootstrap script reads the same `ACO24_*_ACCOUNT_ID` environment variables directly and validates that each value is exactly 12 digits.
+
+---
+
+## Destroy Deployed Stacks
+
+Destroy deployed application and service stacks before deleting bootstrap resources.
+
+Testing:
+
+```bash
+aws sso login --profile management
+aws sso login --profile testing
+pnpm run destroy -- testing
+```
+
+Staging:
+
+```bash
+aws sso login --profile management
+aws sso login --profile staging
+pnpm run destroy -- staging
+```
+
+Production:
+
+```bash
+aws sso login --profile management
+aws sso login --profile production
+pnpm run destroy -- production
+```
+
+Production destroy asks you to type:
+
+```text
+destroy production infrastructure
+```
+
+---
+
+## Destroy Bootstrap Resources
+
+Only destroy bootstrap resources after deployed stacks have been destroyed.
+
+Log in to any profiles whose bootstrap resources you are deleting if your SSO sessions have expired.
+
+```bash
+pnpm run bootstrap-down -- testing
+pnpm run bootstrap-down -- staging
+pnpm run bootstrap-down -- production
+pnpm run bootstrap-down -- management
+```
+
+This deletes the CDK bootstrap stack in `eu-west-2` and `us-east-1` for each selected account, then runs cleanup for bootstrap buckets and container repositories.
+
+After this, any AWS account or organization deletion is done manually in AWS.
 
 # Notes used to generate this file ...
 

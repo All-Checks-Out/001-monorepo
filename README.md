@@ -2,7 +2,7 @@
 
 All Checks Out is a pnpm workspace for the ACO web apps, backend services, local development tooling, and AWS deployment scripts.
 
-This README is deliberately command-first: install, run, test, preview, deploy.
+This README is deliberately command-first: install, run, test, preview, deploy, destroy.
 
 ## Prerequisites
 
@@ -39,6 +39,31 @@ Clean install:
 pnpm run package-cleanup
 pnpm install
 ```
+
+---
+
+## Configure AWS Account IDs
+
+Each developer configures their own AWS account IDs locally. Add these exports to your shell profile, such as `~/.bash_profile` or `~/.zshrc`:
+
+```bash
+export ACO24_MANAGEMENT_ACCOUNT_ID="111111111111"
+export ACO24_TESTING_ACCOUNT_ID="222222222222"
+export ACO24_STAGING_ACCOUNT_ID="333333333333"
+export ACO24_PRODUCTION_ACCOUNT_ID="444444444444"
+```
+
+Replace the placeholders with your real 12-digit AWS account IDs, then reload your shell or open a new terminal.
+
+From the repo root, generate the local TypeScript account config:
+
+```bash
+pnpm run aws:accounts-config
+```
+
+This creates `packages/shared/aws-accounts/src/index.ts`. The file is generated from your shell environment and ignored by git.
+
+For full AWS organization, Identity Center, account assignment, bootstrap, and teardown setup, see [README-aws-account-setup.md](README-aws-account-setup.md).
 
 ---
 
@@ -245,6 +270,21 @@ reset production database
 
 Deploy uses the target profile for workload resources and `management` for website/CloudFront operations.
 
+Before deploying from a fresh clone or after changing AWS account IDs, run:
+
+```bash
+pnpm run aws:accounts-config
+```
+
+Before the first deploy to an account, bootstrap it:
+
+```bash
+pnpm run bootstrap-up -- management
+pnpm run bootstrap-up -- testing
+pnpm run bootstrap-up -- staging
+pnpm run bootstrap-up -- production
+```
+
 Testing:
 
 ```bash
@@ -271,6 +311,53 @@ aws sso login --profile management
 aws sso login --profile production
 pnpm run bootstrap-up -- production
 pnpm run deploy -- production
+```
+
+---
+
+## Destroy
+
+Destroy deployed stacks before destroying bootstrap resources.
+
+Testing:
+
+```bash
+aws sso login --profile management
+aws sso login --profile testing
+pnpm run destroy -- testing
+```
+
+Staging:
+
+```bash
+aws sso login --profile management
+aws sso login --profile staging
+pnpm run destroy -- staging
+```
+
+Production:
+
+```bash
+aws sso login --profile management
+aws sso login --profile production
+pnpm run destroy -- production
+```
+
+Production destroy asks you to type:
+
+```text
+destroy production infrastructure
+```
+
+After deployed stacks are gone, delete CDK bootstrap resources if needed:
+
+Log in to any profiles whose bootstrap resources you are deleting if your SSO sessions have expired.
+
+```bash
+pnpm run bootstrap-down -- testing
+pnpm run bootstrap-down -- staging
+pnpm run bootstrap-down -- production
+pnpm run bootstrap-down -- management
 ```
 
 ---
@@ -357,7 +444,13 @@ production: https://aco24.net
 pnpm install
 ```
 
-2. Run locally
+2. Configure AWS account IDs
+
+```bash
+pnpm run aws:accounts-config
+```
+
+3. Run locally
 
 ```bash
 pnpm run start:local
@@ -365,13 +458,13 @@ pnpm run backend -- dev local
 pnpm run dev -- local
 ```
 
-3. Test
+4. Test
 
 ```bash
 pnpm run test:all
 ```
 
-4. Deploy testing
+5. Bootstrap and deploy testing
 
 ```bash
 aws sso login --profile management
@@ -381,13 +474,13 @@ pnpm run bootstrap-up -- testing
 pnpm run deploy -- testing
 ```
 
-5. Seed testing
+6. Seed testing
 
 ```bash
 ACO24_SEED_USER_PASSWORD='<password>' pnpm run data -- seed testing
 ```
 
-6. Open testing
+7. Open testing
 
 ```bash
 pnpm run url -- testing
