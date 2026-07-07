@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { normalizeSubjectValues } from "@shared/subjects";
 import { z } from "zod";
 
 const corporationTypeSchema = z.enum([
@@ -20,6 +21,12 @@ const ddqTaskTypeSchema = z.enum([
   "photo-upload",
 ]);
 const ddqChecklistStatusSchema = z.enum(["active", "completed", "withdrawn"]);
+const subjectScalarValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const subjectTableRowValueSchema = z.record(z.string(), subjectScalarValueSchema);
+const subjectValueSchema = z.union([
+  subjectScalarValueSchema,
+  z.array(subjectTableRowValueSchema),
+]);
 const formItemBaseSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
@@ -154,6 +161,28 @@ export const seedFixtureSchema = z.object({
           status: ddqChecklistStatusSchema,
         }),
       ),
+    }),
+  ).default([]),
+  subjects: z.array(
+    z.object({
+      legacyId: z.string().min(1),
+      providerCorporationLegacyId: z.number().int().positive(),
+      subjectTypeKey: z.string().min(1),
+      displayName: z.string().min(1),
+      values: z.record(z.string(), subjectValueSchema),
+    }).superRefine((subject, context) => {
+      const validation = normalizeSubjectValues(
+        subject.subjectTypeKey,
+        subject.values,
+      );
+
+      if (!validation.valid) {
+        context.addIssue({
+          code: "custom",
+          path: ["values"],
+          message: validation.error,
+        });
+      }
     }),
   ).default([]),
 });

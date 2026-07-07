@@ -2,6 +2,7 @@ import type {
   DDQDocumentType,
   DDQPack,
   ProviderDDQChecklist as ProviderDDQChecklistModel,
+  ProviderDDQChecklistBranchSelection,
   ProviderDDQChecklistTask,
 } from "@frontend/api/onboarding/types";
 import {
@@ -10,6 +11,7 @@ import {
   createProviderDDQChecklist,
   DDQ_DOCUMENT_TYPES,
   getProviderDDQChecklist,
+  selectProviderDDQChecklistBranchOption,
   type DDQChecklistStatusAction,
 } from "@frontend/api/onboarding/client";
 import {
@@ -40,7 +42,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 import type { ReactElement } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Page from "../components/Page";
 import Status from "../components/Status";
@@ -54,6 +56,13 @@ type ChecklistState = {
   pack: DDQPack;
   checklist: ProviderDDQChecklistModel;
   tasks: ProviderDDQChecklistTask[];
+  branchSelections: ProviderDDQChecklistBranchSelection[];
+};
+
+type ChecklistTaskSection = {
+  id: string;
+  tasks: ProviderDDQChecklistTask[];
+  locked: boolean;
 };
 
 const ProviderDDQChecklist = () => {
@@ -195,11 +204,58 @@ const ProviderDDQChecklist = () => {
     }
   }
 
+  async function selectBranchOption(
+    branchTask: ProviderDDQChecklistTask,
+    optionId: string,
+  ) {
+    if (!canPerformChecklist || !state) return;
+
+    const existingSelection = state.branchSelections.find(
+      (selection) => selection.branch_pack_item_id === branchTask.ddq_pack_item_id,
+    );
+    if (existingSelection?.selected_option_id === optionId) return;
+
+    if (
+      existingSelection &&
+      !window.confirm(
+        "Changing this branch selection will delete work in the previously selected path. Continue?",
+      )
+    ) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const result = await selectProviderDDQChecklistBranchOption(
+        state.pack.id,
+        branchTask.id,
+        optionId,
+      );
+      setState(result);
+      setMessage("Branch selection updated.");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not update branch selection.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     void load();
   }, [numericPackId, canViewChecklist]);
 
-  const counts = useMemo(() => countTasks(state?.tasks ?? []), [state]);
+  const taskSections = useMemo(
+    () => splitTasksIntoSections(getChildTasks(state?.tasks ?? [], null, null)),
+    [state?.tasks],
+  );
+  const counts = useMemo(() => countTaskSections(taskSections), [taskSections]);
   const checklist = state?.checklist ?? null;
   const checklistActions = state
     ? checklistStatusActions(state, counts, canPerformChecklist)
@@ -232,6 +288,7 @@ const ProviderDDQChecklist = () => {
                 <StatusBadge status={checklist.status} />
                 <span>
                   {counts.completed} completed / {counts.active} active /{" "}
+                  {counts.pending} pending /{" "}
                   {counts.withdrawn} withdrawn
                 </span>
                 <ProgressMeter completed={counts.completed} total={counts.total} />
@@ -256,116 +313,176 @@ const ProviderDDQChecklist = () => {
             </div>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Progress</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Task</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Config</TableHead>
-                {canViewChecklist && <TableHead>Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {state.tasks.length > 0 ? (
-                state.tasks.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>
-                      <StatusBadge status={task.status} />
-                    </TableCell>
-                    <TableCell>{task.position}</TableCell>
-                    <TableCell>{task.title}</TableCell>
-                    <TableCell>{displayTaskType(task)}</TableCell>
-                    <TableCell>{displayTaskConfig(task)}</TableCell>
-                    {canViewChecklist && (
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {canPerformChecklist &&
-                            isActiveExecutableTask(task) &&
-                            (taskActionsDisabled ? (
-                              <Button
-                                key="execute"
-                                type="button"
-                                size="icon-sm"
-                                variant="outline"
-                                disabled
-                                aria-label={executeTaskLabel(task)}
-                                title={executeTaskLabel(task)}
-                              >
-                                {executeTaskIcon(task)}
-                              </Button>
-                            ) : (
-                              <Button
-                                key="execute"
-                                type="button"
-                                size="icon-sm"
-                                variant="outline"
-                                asChild
-                                aria-label={executeTaskLabel(task)}
-                                title={executeTaskLabel(task)}
-                              >
-                                <Link
-                                  to={CORE_ROUTES.providerDDQPackChecklistTask(
-                                    state.pack.id,
-                                    task.id,
-                                  )}
-                                >
-                                  {executeTaskIcon(task)}
-                                </Link>
-                              </Button>
-                            ))}
-                          <Button
-                            key="review"
-                            type="button"
-                            size="icon-sm"
-                            variant="outline"
-                            asChild
-                            aria-label="Review task"
-                            title="Review task"
+          <div className="grid gap-6">
+            {state.tasks.length > 0 ? (
+              taskSections.map((section) => (
+                <Table key={section.id}>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Config</TableHead>
+                      {canViewChecklist && <TableHead>Actions</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {section.tasks.map((task, taskIndex) => {
+                      const branchPending =
+                        task.kind === "branch" &&
+                        !arePreviousTasksComplete(section.tasks, taskIndex);
+                      const rowPending = section.locked || branchPending;
+                      const rowActionsDisabled =
+                        taskActionsDisabled || rowPending;
+
+                      return (
+                        <Fragment key={task.id}>
+                          <TableRow
+                            className={rowPending ? "opacity-55" : undefined}
                           >
-                            <Link
-                              to={CORE_ROUTES.providerDDQPackChecklistTask(
-                                state.pack.id,
-                                task.id,
+                          <TableCell>
+                            <StatusBadge
+                              status={displayedTaskStatus(
+                                task,
+                                rowPending,
                               )}
-                            >
-                              <Eye className="size-4" />
-                            </Link>
-                          </Button>
-                          {canPerformChecklist && taskStatusActions(task).map((action) => (
-                            <Button
-                              key={action.action}
-                              type="button"
-                              size="icon-sm"
-                              variant="outline"
-                              disabled={taskActionsDisabled}
-                              aria-label={action.label}
-                              title={action.label}
-                              onClick={() => changeTaskStatus(task, action.action)}
-                            >
-                              {action.icon}
-                            </Button>
-                          ))}
-                        </div>
-                      </TableCell>
-                    )}
+                            />
+                          </TableCell>
+                          <TableCell>{task.position}</TableCell>
+                          <TableCell>{task.title}</TableCell>
+                          <TableCell>{displayTaskType(task)}</TableCell>
+                          <TableCell>{displayTaskConfig(task)}</TableCell>
+                          {canViewChecklist && (
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1">
+                                {canPerformChecklist &&
+                                  isActiveExecutableTask(task) &&
+                                  (rowActionsDisabled ? (
+                                    <Button
+                                      key="execute"
+                                      type="button"
+                                      size="icon-sm"
+                                      variant="outline"
+                                      disabled
+                                      aria-label={executeTaskLabel(task)}
+                                      title={executeTaskLabel(task)}
+                                    >
+                                      {executeTaskIcon(task)}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      key="execute"
+                                      type="button"
+                                      size="icon-sm"
+                                      variant="outline"
+                                      asChild
+                                      aria-label={executeTaskLabel(task)}
+                                      title={executeTaskLabel(task)}
+                                    >
+                                      <Link
+                                        to={CORE_ROUTES.providerDDQPackChecklistTask(
+                                          state.pack.id,
+                                          task.id,
+                                        )}
+                                      >
+                                        {executeTaskIcon(task)}
+                                      </Link>
+                                    </Button>
+                                  ))}
+                                {task.kind !== "branch" &&
+                                  (rowActionsDisabled ? (
+                                    <Button
+                                      key="review"
+                                      type="button"
+                                      size="icon-sm"
+                                      variant="outline"
+                                      disabled
+                                      aria-label="Review task"
+                                      title="Review task"
+                                    >
+                                      <Eye className="size-4" />
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      key="review"
+                                      type="button"
+                                      size="icon-sm"
+                                      variant="outline"
+                                      asChild
+                                      aria-label="Review task"
+                                      title="Review task"
+                                    >
+                                      <Link
+                                        to={CORE_ROUTES.providerDDQPackChecklistTask(
+                                          state.pack.id,
+                                          task.id,
+                                        )}
+                                      >
+                                        <Eye className="size-4" />
+                                      </Link>
+                                    </Button>
+                                  ))}
+                                {canPerformChecklist && task.kind !== "branch" && taskStatusActions(task).map((action) => (
+                                  <Button
+                                    key={action.action}
+                                    type="button"
+                                    size="icon-sm"
+                                    variant="outline"
+                                    disabled={rowActionsDisabled}
+                                    aria-label={action.label}
+                                    title={action.label}
+                                    onClick={() => changeTaskStatus(task, action.action)}
+                                  >
+                                    {action.icon}
+                                  </Button>
+                                ))}
+                              </div>
+                            </TableCell>
+                          )}
+                          </TableRow>
+                          {task.kind === "branch" && (
+                          <TableRow>
+                            <TableCell colSpan={canViewChecklist ? 6 : 5}>
+                              <BranchSelectionPath
+                                allTasks={state.tasks}
+                                branchTask={task}
+                                selections={state.branchSelections}
+                                canViewChecklist={canViewChecklist}
+                                canPerformChecklist={canPerformChecklist}
+                                taskActionsDisabled={taskActionsDisabled}
+                                locked={rowPending}
+                                loading={loading}
+                                packId={state.pack.id}
+                                onSelectOption={selectBranchOption}
+                                onChangeTaskStatus={changeTaskStatus}
+                              />
+                            </TableCell>
+                          </TableRow>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ))
+            ) : (
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      className="py-3 text-muted-foreground"
+                      colSpan={canViewChecklist ? 6 : 5}
+                    >
+                      {loading
+                        ? "Loading DDQ Checklist."
+                        : "This checklist has no tasks."}
+                    </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    className="py-3 text-muted-foreground"
-                    colSpan={canViewChecklist ? 6 : 5}
-                  >
-                    {loading
-                      ? "Loading DDQ Checklist."
-                      : "This checklist has no tasks."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </>
       ) : (
         <div className="grid gap-3 border bg-muted/20 p-4">
@@ -394,6 +511,199 @@ const ProviderDDQChecklist = () => {
     </Page>
   );
 };
+
+type BranchSelectionPathProps = {
+  allTasks: ProviderDDQChecklistTask[];
+  branchTask: ProviderDDQChecklistTask;
+  selections: ProviderDDQChecklistBranchSelection[];
+  canViewChecklist: boolean;
+  canPerformChecklist: boolean;
+  taskActionsDisabled: boolean;
+  locked: boolean;
+  loading: boolean;
+  packId: number;
+  onSelectOption: (task: ProviderDDQChecklistTask, optionId: string) => void;
+  onChangeTaskStatus: (
+    task: ProviderDDQChecklistTask,
+    action: DDQChecklistStatusAction,
+  ) => void;
+};
+
+function BranchSelectionPath({
+  allTasks,
+  branchTask,
+  selections,
+  canViewChecklist,
+  canPerformChecklist,
+  taskActionsDisabled,
+  locked,
+  loading,
+  packId,
+  onSelectOption,
+  onChangeTaskStatus,
+}: BranchSelectionPathProps) {
+  const options = branchOptions(branchTask.config);
+  const selection = selections.find(
+    (candidate) => candidate.branch_pack_item_id === branchTask.ddq_pack_item_id,
+  );
+  const selectedOptionId = selection?.selected_option_id ?? "";
+  const selectedTasks = selectedOptionId
+    ? getChildTasks(allTasks, branchTask.ddq_pack_item_id, selectedOptionId)
+    : [];
+  const sections = splitTasksIntoSections(selectedTasks);
+
+  return (
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {options.map((option) => (
+          <Button
+            key={option.id}
+            type="button"
+            size="sm"
+            variant={option.id === selectedOptionId ? "secondary" : "outline"}
+            disabled={
+              loading || !canPerformChecklist || taskActionsDisabled || locked
+            }
+            onClick={() => onSelectOption(branchTask, option.id)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+      {selectedOptionId && selectedTasks.length > 0 && (
+        <div className={locked ? "grid gap-4 opacity-55" : "grid gap-4"}>
+          {sections.map((section) => (
+            <Table key={`${branchTask.id}-${selectedOptionId}-${section.id}`}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Config</TableHead>
+                  {canViewChecklist && <TableHead>Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {section.tasks.map((task, taskIndex) => {
+                  const nestedBranchPending =
+                    task.kind === "branch" &&
+                    !arePreviousTasksComplete(section.tasks, taskIndex);
+                  const rowPending = locked || section.locked || nestedBranchPending;
+                  const rowActionsDisabled = taskActionsDisabled || rowPending;
+
+                  return (
+                    <Fragment key={task.id}>
+                      <TableRow className={rowPending ? "opacity-55" : undefined}>
+                        <TableCell>
+                          <StatusBadge status={displayedTaskStatus(task, rowPending)} />
+                        </TableCell>
+                        <TableCell>{task.position}</TableCell>
+                        <TableCell>{task.title}</TableCell>
+                        <TableCell>{displayTaskType(task)}</TableCell>
+                        <TableCell>{displayTaskConfig(task)}</TableCell>
+                        {canViewChecklist && (
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {canPerformChecklist &&
+                                isActiveExecutableTask(task) &&
+                                (rowActionsDisabled ? (
+                                  <Button
+                                    key="execute"
+                                    type="button"
+                                    size="icon-sm"
+                                    variant="outline"
+                                    disabled
+                                    aria-label={executeTaskLabel(task)}
+                                    title={executeTaskLabel(task)}
+                                  >
+                                    {executeTaskIcon(task)}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    key="execute"
+                                    type="button"
+                                    size="icon-sm"
+                                    variant="outline"
+                                    asChild
+                                    aria-label={executeTaskLabel(task)}
+                                    title={executeTaskLabel(task)}
+                                  >
+                                    <Link to={CORE_ROUTES.providerDDQPackChecklistTask(packId, task.id)}>
+                                      {executeTaskIcon(task)}
+                                    </Link>
+                                  </Button>
+                                ))}
+                              {task.kind !== "branch" && (
+                                <Button
+                                  key="review"
+                                  type="button"
+                                  size="icon-sm"
+                                  variant="outline"
+                                  disabled={rowActionsDisabled}
+                                  asChild={!rowActionsDisabled}
+                                  aria-label="Review task"
+                                  title="Review task"
+                                >
+                                  {rowActionsDisabled ? (
+                                    <Eye className="size-4" />
+                                  ) : (
+                                    <Link to={CORE_ROUTES.providerDDQPackChecklistTask(packId, task.id)}>
+                                      <Eye className="size-4" />
+                                    </Link>
+                                  )}
+                                </Button>
+                              )}
+                              {canPerformChecklist &&
+                                task.kind !== "branch" &&
+                                taskStatusActions(task).map((action) => (
+                                  <Button
+                                    key={action.action}
+                                    type="button"
+                                    size="icon-sm"
+                                    variant="outline"
+                                    disabled={rowActionsDisabled}
+                                    aria-label={action.label}
+                                    title={action.label}
+                                    onClick={() => onChangeTaskStatus(task, action.action)}
+                                  >
+                                    {action.icon}
+                                  </Button>
+                                ))}
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                      {task.kind === "branch" && (
+                        <TableRow>
+                          <TableCell colSpan={canViewChecklist ? 6 : 5}>
+                            <BranchSelectionPath
+                              allTasks={allTasks}
+                              branchTask={task}
+                              selections={selections}
+                              canViewChecklist={canViewChecklist}
+                              canPerformChecklist={canPerformChecklist}
+                              taskActionsDisabled={taskActionsDisabled}
+                              locked={rowPending}
+                              loading={loading}
+                              packId={packId}
+                              onSelectOption={onSelectOption}
+                              onChangeTaskStatus={onChangeTaskStatus}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 type StatusAction = {
   action: DDQChecklistStatusAction;
@@ -533,10 +843,91 @@ function taskStatusActionFor(
   return taskStatusActions(task).find((candidate) => candidate.action === action);
 }
 
+function splitTasksIntoSections(tasks: ProviderDDQChecklistTask[]): ChecklistTaskSection[] {
+  const sections: ChecklistTaskSection[] = [];
+  let sectionTasks: ProviderDDQChecklistTask[] = [];
+  let allTasksBeforeCheckpointComplete = true;
+
+  tasks.forEach((task, index) => {
+    sectionTasks.push(task);
+
+    if (task.kind === "checkpoint") {
+      sections.push({
+        id: `section-${sections.length}-${sectionTasks[0]?.id ?? task.id}`,
+        tasks: sectionTasks,
+        locked: !allTasksBeforeCheckpointComplete,
+      });
+
+      allTasksBeforeCheckpointComplete = tasks
+        .slice(0, index)
+        .every(isTaskCompleteForCheckpoint);
+      sectionTasks = [];
+    }
+  });
+
+  if (sectionTasks.length > 0 || sections.length === 0) {
+    sections.push({
+      id: `section-${sections.length}-${sectionTasks[0]?.id ?? "empty"}`,
+      tasks: sectionTasks,
+      locked: !allTasksBeforeCheckpointComplete,
+    });
+  }
+
+  return sections;
+}
+
+function getChildTasks(
+  tasks: ProviderDDQChecklistTask[],
+  parentBranchItemId: number | null,
+  parentBranchOptionId: string | null,
+) {
+  return tasks.filter(
+    (task) =>
+      task.parent_branch_item_id === parentBranchItemId &&
+      task.parent_branch_option_id === parentBranchOptionId,
+  );
+}
+
+function arePreviousTasksComplete(
+  tasks: ProviderDDQChecklistTask[],
+  index: number,
+) {
+  return tasks.slice(0, index).every(isTaskCompleteForCheckpoint);
+}
+
+function isTaskCompleteForCheckpoint(task: ProviderDDQChecklistTask) {
+  return task.status === "completed" || task.status === "withdrawn";
+}
+
+function displayedTaskStatus(task: ProviderDDQChecklistTask, locked: boolean) {
+  return locked ? "pending" : task.status;
+}
+
+function countTaskSections(sections: ChecklistTaskSection[]) {
+  const counts = {
+    active: 0,
+    completed: 0,
+    pending: 0,
+    withdrawn: 0,
+    total: 0,
+  };
+
+  for (const section of sections) {
+    for (const task of section.tasks) {
+      const status = displayedTaskStatus(task, section.locked);
+      counts[status] += 1;
+      if (status !== "withdrawn") counts.total += 1;
+    }
+  }
+
+  return counts;
+}
+
 function countTasks(tasks: ProviderDDQChecklistTask[]) {
   const counts = {
     active: 0,
     completed: 0,
+    pending: 0,
     withdrawn: 0,
     total: 0,
   };
@@ -550,6 +941,7 @@ function countTasks(tasks: ProviderDDQChecklistTask[]) {
 }
 
 function displayTaskType(task: ProviderDDQChecklistTask) {
+  if (task.kind === "branch") return "Branch";
   if (task.kind === "checkpoint") return "Checkpoint";
   if (task.task_type === "document-upload") return "Document upload";
   if (task.task_type === "form-completion") return "Form completion";
@@ -558,6 +950,10 @@ function displayTaskType(task: ProviderDDQChecklistTask) {
 }
 
 function displayTaskConfig(task: ProviderDDQChecklistTask) {
+  if (task.kind === "branch") {
+    const options = branchOptions(task.config);
+    return `${options.length} ${options.length === 1 ? "option" : "options"}`;
+  }
   if (task.kind === "checkpoint") return "Complete everything above to continue";
   if (task.task_type === "form-completion") {
     return formDocumentTitle(task.config) || "-";
@@ -568,6 +964,18 @@ function displayTaskConfig(task: ProviderDDQChecklistTask) {
   if (typeof documentType !== "string") return "-";
 
   return displayDocumentType(documentType as DDQDocumentType);
+}
+
+function branchOptions(config: Record<string, unknown>) {
+  const options = config.options;
+  if (!Array.isArray(options)) return [];
+
+  return options.flatMap((option) => {
+    if (!option || typeof option !== "object" || Array.isArray(option)) return [];
+    const raw = option as Record<string, unknown>;
+    if (typeof raw.id !== "string" || typeof raw.label !== "string") return [];
+    return [{ id: raw.id, label: raw.label }];
+  });
 }
 
 function formDocumentTitle(config: Record<string, unknown>) {

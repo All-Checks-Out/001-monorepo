@@ -1,4 +1,20 @@
 import type { CorporationType, Permission } from "@shared/permissions";
+import type {
+  SubjectPropertySelection,
+  SubjectScalarValue,
+  SubjectTypeDefinition,
+  SubjectValues,
+} from "@shared/subjects";
+
+export type {
+  SubjectComplexRowValue,
+  SubjectPropertyDefinition,
+  SubjectPropertySelection,
+  SubjectPropertyValue,
+  SubjectScalarValue,
+  SubjectSimplePropertyDefinition,
+  SubjectValues,
+} from "@shared/subjects";
 
 export type AuthenticatedUser = {
   sub: string | null;
@@ -72,7 +88,25 @@ export type ProviderDDQPack = DDQPack & {
   checklist_id: number | null;
   checklist_status: DDQChecklistStatus | null;
 };
-export type DDQPackItemKind = "ddq-task" | "checkpoint";
+export type SubjectType = SubjectTypeDefinition;
+
+export type Subject = {
+  id: number;
+  provider_corporation_id: number;
+  subject_type_key: string;
+  display_name: string;
+  values_json: SubjectValues;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SubjectPayload = {
+  subject_type_key: string;
+  values: SubjectValues;
+};
+
+export type DDQPackItemKind = "ddq-task" | "checkpoint" | "branch";
 export type DDQTaskType = "document-upload" | "form-completion" | "photo-upload";
 export type DDQDocumentType =
   | "passport"
@@ -89,7 +123,18 @@ type DDQPackItemBase = {
   pack_id: number;
   position: number;
   title: string;
+  parent_branch_item_id: number | null;
+  parent_branch_option_id: string | null;
   created_at: string;
+};
+
+export type DDQBranchOption = {
+  id: string;
+  label: string;
+};
+
+export type DDQBranchConfig = {
+  options: DDQBranchOption[];
 };
 
 export type DDQCheckpointItem = DDQPackItemBase & {
@@ -104,7 +149,13 @@ export type DDQTaskItem = DDQPackItemBase & {
   config: Record<string, unknown>;
 };
 
-export type DDQPackItem = DDQCheckpointItem | DDQTaskItem;
+export type DDQBranchItem = DDQPackItemBase & {
+  kind: "branch";
+  task_type: null;
+  config: DDQBranchConfig;
+};
+
+export type DDQPackItem = DDQCheckpointItem | DDQTaskItem | DDQBranchItem;
 
 export type FormItemType =
   | "text"
@@ -113,7 +164,8 @@ export type FormItemType =
   | "phone"
   | "select"
   | "radio"
-  | "boolean";
+  | "boolean"
+  | "subject";
 
 export type FormTemplateSchema = {
   version: 1;
@@ -134,7 +186,8 @@ export type FormDefinition = {
 };
 
 export type FormValues = Record<string, FormValue>;
-export type FormValue = string | boolean | null;
+export type FormSubjectEntryValue = SubjectValues;
+export type FormValue = SubjectScalarValue | FormSubjectEntryValue[];
 
 export type DDQFormCompletionConfig = {
   form: FormDocument;
@@ -154,7 +207,13 @@ export type FormItem =
   | (FormItemBase & { type: "phone"; placeholder?: string })
   | (FormItemBase & { type: "select"; options: string[] })
   | (FormItemBase & { type: "radio"; options: string[] })
-  | (FormItemBase & { type: "boolean" });
+  | (FormItemBase & { type: "boolean" })
+  | (FormItemBase & {
+      type: "subject";
+      subjectTypeKey: string;
+      repeatable: boolean;
+      selectedProperties: SubjectPropertySelection[];
+    });
 
 export type FormTemplateSummary = {
   id: number;
@@ -187,6 +246,17 @@ export type ProviderDDQChecklistTask = {
   task_type: DDQTaskType | null;
   title: string;
   config: Record<string, unknown>;
+  parent_branch_item_id: number | null;
+  parent_branch_option_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProviderDDQChecklistBranchSelection = {
+  id: number;
+  checklist_id: number;
+  branch_pack_item_id: number;
+  selected_option_id: string;
   created_at: string;
   updated_at: string;
 };
@@ -228,4 +298,6 @@ export type DDQPackItemPayload = {
   task_type: DDQTaskType | null;
   title: string;
   config: Record<string, unknown>;
+  parent_branch_item_id?: number | null;
+  parent_branch_option_id?: string | null;
 };

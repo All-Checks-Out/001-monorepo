@@ -33,9 +33,14 @@ import {
 import {
   countProviderDDQChecklistTasksByStatus,
   createMissingProviderDDQChecklistTasks,
+  createMissingProviderDDQChecklistTasksForBranchOption,
   createProviderDDQChecklist,
+  deleteProviderDDQChecklistWorkForBranchOption,
+  getProviderDDQChecklistBranchSelection,
+  getProviderDDQChecklistBranchTask,
   getProviderDDQPackPoolItem,
   readProviderDDQChecklist,
+  upsertProviderDDQChecklistBranchSelection,
   updateProviderDDQChecklistStatus,
   updateProviderDDQChecklistTaskStatus,
 } from "../database/ddqChecklistRepository";
@@ -93,6 +98,7 @@ import type {
   FormValue,
   FormValues,
   FormTemplateDetailRow,
+  ProviderDDQChecklistBranchSelectionRow,
   ProviderDDQChecklistRow,
   ProviderDDQChecklistTaskEvidenceRow,
   ProviderDDQChecklistTaskEvidenceTagRow,
@@ -116,6 +122,17 @@ import {
   parseFormTemplateInput,
 } from "./formTemplateValidation";
 import {
+  getSubjectPropertyDefinition,
+  getSubjectTypes,
+  normalizeSubjectValues,
+  subjectDisplayName,
+  type SubjectComplexRowValue,
+  type SubjectPropertySelection,
+  type SubjectScalarValue,
+  type SubjectSimplePropertyDefinition,
+  type SubjectValues,
+} from "@shared/subjects";
+import {
   getPermissionsForCorporationType,
   hasPermission,
   validatePermissionsForCorporationType,
@@ -123,6 +140,13 @@ import {
 import { randomUUID } from "node:crypto";
 import { isLocalMode } from "../localMode";
 import { localCognitoSub } from "./localIdentity";
+import {
+  archiveSubjectForProvider,
+  createSubjectForProvider,
+  getSubjectForProvider,
+  listSubjectsForProvider,
+  updateSubjectForProvider,
+} from "../database/subjectRepository";
 
 export class ServiceError extends Error {
   constructor(
@@ -573,6 +597,136 @@ export async function getProviderDDQPacks(_context: CurrentUserContext) {
   try {
     const packs = await listProviderDDQPacks(client, _context.corporation.id);
     return { packs: packs.map(toProviderDDQPackData) };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getSubjectTypeMetadata(context: CurrentUserContext) {
+  if (context.corporation.type === "ASSOCIATION") {
+    requirePermission(context, "association-forms:read");
+  } else if (context.corporation.type === "PROVIDER") {
+    requirePermission(context, "provider-subjects:read");
+  } else {
+    throw new ServiceError(403, "Permission required.");
+  }
+
+  return { subjectTypes: getSubjectTypes() };
+}
+
+export async function getProviderSubjects(
+  context: CurrentUserContext,
+  filters: {
+    subjectTypeKey?: string;
+    q?: string;
+    includeArchived?: boolean;
+  },
+) {
+  requirePermission(context, "provider-subjects:read");
+
+  const client = await createDbClient();
+
+  try {
+    const subjects = await listSubjectsForProvider(
+      client,
+      context.corporation.id,
+      filters,
+    );
+    return { subjects };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getProviderSubject(
+  context: CurrentUserContext,
+  subjectId: number,
+) {
+  requirePermission(context, "provider-subjects:read");
+
+  const client = await createDbClient();
+
+  try {
+    const subject = await getSubjectForProvider(
+      client,
+      context.corporation.id,
+      subjectId,
+    );
+    if (!subject) throw new ServiceError(404, "Subject not found.");
+    return { subject };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function createProviderSubject(
+  context: CurrentUserContext,
+  input: SubjectPayload,
+) {
+  requirePermission(context, "provider-subjects:edit");
+
+  const normalized = normalizeSubjectPayload(input);
+  const client = await createDbClient();
+
+  try {
+    const subject = await createSubjectForProvider(
+      client,
+      context.corporation.id,
+      {
+        ...normalized,
+        appUserId: context.user.id,
+      },
+    );
+    return { subject };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function updateProviderSubject(
+  context: CurrentUserContext,
+  subjectId: number,
+  input: SubjectPayload,
+) {
+  requirePermission(context, "provider-subjects:edit");
+
+  const normalized = normalizeSubjectPayload(input);
+  const client = await createDbClient();
+
+  try {
+    const subject = await updateSubjectForProvider(
+      client,
+      context.corporation.id,
+      subjectId,
+      {
+        ...normalized,
+        appUserId: context.user.id,
+      },
+    );
+    if (!subject) throw new ServiceError(404, "Subject not found.");
+    return { subject };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function archiveProviderSubject(
+  context: CurrentUserContext,
+  subjectId: number,
+) {
+  requirePermission(context, "provider-subjects:edit");
+
+  const client = await createDbClient();
+
+  try {
+    const subject = await archiveSubjectForProvider(
+      client,
+      context.corporation.id,
+      subjectId,
+      context.user.id,
+    );
+    if (!subject) throw new ServiceError(404, "Subject not found.");
+    return { subject };
   } finally {
     await client.end();
   }
@@ -1222,6 +1376,106 @@ export async function changeProviderDDQChecklistTaskStatus(
   }
 }
 
+export async function selectProviderDDQChecklistBranchOption(
+  context: CurrentUserContext,
+  packId: number,
+  branchTaskId: number,
+  optionId: string,
+) {
+  requirePermission(context, "provider-ddq-packs:perform-checks");
+
+  const client = await createDbClient();
+
+  await client.query("BEGIN");
+
+  try {
+    const result = await readProviderDDQChecklist(
+      client,
+      context.corporation.id,
+      packId,
+    );
+    if (!result.pack || !result.checklist) {
+      throw new ServiceError(404, "DDQ Checklist not found.");
+    }
+    if (result.checklist.status === "withdrawn") {
+      throw new ServiceError(
+        400,
+        "Restore a withdrawn DDQ Checklist before changing branch selections.",
+      );
+    }
+
+    const branchTask = await getProviderDDQChecklistBranchTask(
+      client,
+      context.corporation.id,
+      packId,
+      branchTaskId,
+    );
+    if (!branchTask || branchTask.checklist_id !== result.checklist.id) {
+      throw new ServiceError(404, "DDQ Branch not found.");
+    }
+
+    const options = branchOptionsFromConfig(branchTask.config);
+    if (!options.some((option) => option.id === optionId)) {
+      throw new ServiceError(400, "Choose one of the branch options.");
+    }
+
+    const existingSelection = await getProviderDDQChecklistBranchSelection(
+      client,
+      result.checklist.id,
+      branchTask.ddq_pack_item_id,
+    );
+
+    if (existingSelection?.selected_option_id === optionId) {
+      await client.query("COMMIT");
+      return toProviderDDQChecklistResponse(result);
+    }
+
+    if (existingSelection) {
+      await deleteProviderDDQChecklistWorkForBranchOption(
+        client,
+        result.checklist.id,
+        branchTask.ddq_pack_item_id,
+        existingSelection.selected_option_id,
+      );
+    }
+
+    await upsertProviderDDQChecklistBranchSelection(
+      client,
+      result.checklist.id,
+      branchTask.ddq_pack_item_id,
+      optionId,
+    );
+    await createMissingProviderDDQChecklistTasksForBranchOption(
+      client,
+      result.checklist.id,
+      branchTask.ddq_pack_item_id,
+      optionId,
+    );
+    await applyAutomaticChecklistStatus(
+      client,
+      result.checklist.id,
+      result.checklist.status,
+    );
+
+    const updated = await readProviderDDQChecklist(
+      client,
+      context.corporation.id,
+      packId,
+    );
+    if (!updated.pack || !updated.checklist) {
+      throw new ServiceError(404, "DDQ Checklist not found.");
+    }
+
+    await client.query("COMMIT");
+    return toProviderDDQChecklistResponse(updated);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
 export async function decideProviderAccessRequest(
   context: CurrentUserContext,
   id: number,
@@ -1711,10 +1965,14 @@ export async function deleteAssociationDDQPackItem(
 }
 
 type DDQPackItemInput = {
+  clientId?: string;
   kind: DDQPackItemKind;
   taskType: DDQTaskType | null;
   title: string;
   config: Record<string, unknown>;
+  parentBranchItemId?: number | null;
+  parentBranchOptionId?: string | null;
+  parentBranchItemClientId?: string | null;
 };
 
 function transitionDDQPackStatus(
@@ -1746,6 +2004,34 @@ function requirePermission(context: CurrentUserContext, permission: Permission) 
   if (!hasPermission(toPermissionContext(context), permission)) {
     throw new ServiceError(403, "Permission required.");
   }
+}
+
+type SubjectPayload = {
+  subjectTypeKey: string;
+  values: Record<string, unknown>;
+};
+
+function normalizeSubjectPayload(input: SubjectPayload): {
+  subjectTypeKey: string;
+  displayName: string;
+  values: SubjectValues;
+} {
+  const normalized = normalizeSubjectValues(input.subjectTypeKey, input.values);
+  if (!normalized.valid) {
+    throw new ServiceError(400, normalized.error);
+  }
+
+  const displayName = subjectDisplayName(
+    input.subjectTypeKey,
+    normalized.values,
+    "Untitled Subject",
+  );
+
+  return {
+    subjectTypeKey: input.subjectTypeKey,
+    displayName,
+    values: normalized.values,
+  };
 }
 
 function requireAnyPermission(
@@ -1941,6 +2227,7 @@ type ProviderDDQChecklistData = {
   pack: DDQPackData;
   checklist: ProviderDDQChecklistRow;
   tasks: ProviderDDQChecklistTaskWithItemRow[];
+  branchSelections: ProviderDDQChecklistBranchSelectionRow[];
 };
 
 function toDDQPackData(pack: DDQPackRow): DDQPackData {
@@ -1967,6 +2254,7 @@ function toProviderDDQChecklistResponse(result: {
   pack: DDQPackRow | null;
   checklist: ProviderDDQChecklistRow | null;
   tasks: ProviderDDQChecklistTaskWithItemRow[];
+  branchSelections: ProviderDDQChecklistBranchSelectionRow[];
 }): ProviderDDQChecklistData {
   if (!result.pack || !result.checklist) {
     throw new ServiceError(404, "DDQ Checklist not found.");
@@ -1976,6 +2264,7 @@ function toProviderDDQChecklistResponse(result: {
     pack: toDDQPackData(result.pack),
     checklist: result.checklist,
     tasks: result.tasks,
+    branchSelections: result.branchSelections,
   };
 }
 
@@ -2171,13 +2460,16 @@ async function normalizeDDQPackItemInput(
   if (input.kind !== "ddq-task") {
     throw new ServiceError(400, "Invalid DDQ Pack Item kind.");
   }
+  const parentMetadata = normalizeDDQPackItemParentMetadata(input);
 
   if (input.config.form) {
     return {
+      clientId: cleanOptionalString(input.clientId),
       kind: input.kind,
       taskType: input.taskType,
       title,
       config: { form: validateFormDocument(input.config.form) },
+      ...parentMetadata,
     };
   }
 
@@ -2194,10 +2486,12 @@ async function normalizeDDQPackItemInput(
   if (!template) throw new ServiceError(404, "Form template not found.");
 
   return {
+    clientId: cleanOptionalString(input.clientId),
     kind: input.kind,
     taskType: input.taskType,
     title,
     config: { form: formTemplateToDocument(template) },
+    ...parentMetadata,
   };
 }
 
@@ -2289,11 +2583,7 @@ function validateFormValues(input: unknown) {
 
   return Object.fromEntries(
     Object.entries(input).map(([key, value]) => {
-      if (
-        value !== null &&
-        typeof value !== "string" &&
-        typeof value !== "boolean"
-      ) {
+      if (!isRawFormValue(value)) {
         throw new ServiceError(400, "Invalid form value.");
       }
 
@@ -2307,14 +2597,19 @@ function normalizeFormValuesForDocument(
   values: FormValues,
 ): FormValues {
   const normalized: FormValues = {};
-  const itemIds = new Set(document.definition.items.map((item) => item.id));
+  const itemsById = new Map(document.definition.items.map((item) => [item.id, item]));
 
   for (const [key, value] of Object.entries(values)) {
-    if (!itemIds.has(key)) continue;
+    const item = itemsById.get(key);
+    if (!item) continue;
 
-    if (typeof value === "string") {
+    if (item.type === "subject") {
+      if (value === undefined || value === null) continue;
+      if (!Array.isArray(value)) throw new ServiceError(400, "Invalid form value.");
+      normalized[key] = value.map((entry) => normalizeSubjectEntry(item.selectedProperties, entry));
+    } else if (typeof value === "string") {
       normalized[key] = value.trim();
-    } else if (typeof value === "boolean" || value === null) {
+    } else if (typeof value === "number" || typeof value === "boolean" || value === null) {
       normalized[key] = value;
     } else {
       throw new ServiceError(400, "Invalid form value.");
@@ -2337,6 +2632,19 @@ function validateFormCompletion(document: FormDocument) {
       continue;
     }
     if (!hasValue) continue;
+
+    if (item.type === "subject") {
+      if (!Array.isArray(value)) {
+        errors[item.id] = "Enter valid Subject entries.";
+        continue;
+      }
+
+      const subjectError = validateSubjectCompletion(item, value);
+      if (subjectError) {
+        errors[item.id] = subjectError;
+      }
+      continue;
+    }
 
     if (item.type === "boolean") {
       if (typeof value !== "boolean") {
@@ -2370,7 +2678,182 @@ function validateFormCompletion(document: FormDocument) {
 function hasFormItemValue(value: FormValue | undefined) {
   if (value === undefined || value === null) return false;
   if (typeof value === "string") return value.trim().length > 0;
-  return typeof value === "boolean";
+  if (Array.isArray(value)) return value.length > 0;
+  return typeof value === "number" || typeof value === "boolean";
+}
+
+function isRawFormValue(value: unknown): value is FormValue {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return true;
+  }
+
+  if (!Array.isArray(value)) return false;
+
+  return value.every((entry) => isRawSubjectEntryValue(entry));
+}
+
+function isRawSubjectEntryValue(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value)) return false;
+
+  return Object.values(value).every((entryValue) => {
+    if (isRawScalarFormValue(entryValue)) return true;
+    if (!Array.isArray(entryValue)) return false;
+    return entryValue.every(
+      (row) => isRecord(row) && Object.values(row).every(isRawScalarFormValue),
+    );
+  });
+}
+
+function isRawScalarFormValue(value: unknown) {
+  return (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  );
+}
+
+function normalizeSubjectEntry(
+  selectedProperties: SubjectPropertySelection[],
+  entry: SubjectValues,
+) {
+  const normalized: SubjectValues = {};
+
+  for (const selection of selectedProperties) {
+    const value = entry[selection.key];
+    if (value === undefined) continue;
+
+    if ("columns" in selection) {
+      if (value === null) continue;
+      if (!Array.isArray(value)) throw new ServiceError(400, "Invalid form value.");
+      normalized[selection.key] = value.map((row) =>
+        normalizeSubjectTableRow(selection.columns, row),
+      );
+      continue;
+    }
+
+    if (isSubjectScalarValue(value)) {
+      normalized[selection.key] = normalizeScalarFormValue(value);
+    } else {
+      throw new ServiceError(400, "Invalid form value.");
+    }
+  }
+
+  return normalized;
+}
+
+function normalizeSubjectTableRow(
+  columns: readonly { key: string }[],
+  row: SubjectComplexRowValue,
+) {
+  const normalized: SubjectComplexRowValue = {};
+  const allowedKeys = new Set(columns.map((column) => column.key));
+
+  for (const [key, value] of Object.entries(row)) {
+    if (!allowedKeys.has(key)) continue;
+
+    if (isSubjectScalarValue(value)) {
+      normalized[key] = normalizeScalarFormValue(value);
+    } else {
+      throw new ServiceError(400, "Invalid form value.");
+    }
+  }
+
+  return normalized;
+}
+
+function normalizeScalarFormValue(value: SubjectScalarValue): SubjectScalarValue {
+  return typeof value === "string" ? value.trim() : value;
+}
+
+function validateSubjectCompletion(
+  item: Extract<FormDocument["definition"]["items"][number], { type: "subject" }>,
+  entries: SubjectValues[],
+) {
+  for (const entry of entries) {
+    for (const selection of item.selectedProperties) {
+      const property = getSubjectPropertyDefinition(item.subjectTypeKey, selection.key);
+      if (!property) return "Subject configuration is invalid.";
+
+      if (property.kind === "simple") {
+        const value = entry[property.key];
+        if (!hasSubjectScalarValue(value)) return `${property.label} is required.`;
+        const scalarValue = value as SubjectScalarValue;
+        if (!isValidSubjectSimplePropertyValue(property, scalarValue)) {
+          return `Enter a valid ${property.label}.`;
+        }
+        continue;
+      }
+
+      if (!("columns" in selection)) return "Subject configuration is invalid.";
+
+      const value = entry[property.key];
+      if (value === undefined || value === null) continue;
+      if (!Array.isArray(value)) return `Enter valid ${property.label}.`;
+
+      const tableError = validateSubjectTableCompletion(property, selection.columns, value);
+      if (tableError) return tableError;
+    }
+  }
+
+  return "";
+}
+
+function validateSubjectTableCompletion(
+  property: Extract<
+    NonNullable<ReturnType<typeof getSubjectPropertyDefinition>>,
+    { kind: "complex" }
+  >,
+  columns: readonly { key: string }[],
+  rows: SubjectComplexRowValue[],
+) {
+  const columnsByKey = new Map(property.properties.map((column) => [column.key, column]));
+
+  for (const row of rows) {
+    for (const selection of columns) {
+      const column = columnsByKey.get(selection.key);
+      if (!column) return "Subject configuration is invalid.";
+
+      const value = row[column.key];
+      if (!hasSubjectScalarValue(value)) return `${column.label} is required.`;
+      if (!isValidSubjectSimplePropertyValue(column, value)) {
+        return `Enter a valid ${column.label}.`;
+      }
+    }
+  }
+
+  return "";
+}
+
+function hasSubjectScalarValue(value: SubjectValues[string] | undefined) {
+  if (value === undefined || value === null || Array.isArray(value)) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  return typeof value === "number" || typeof value === "boolean";
+}
+
+function isSubjectScalarValue(value: SubjectValues[string]): value is SubjectScalarValue {
+  return value === null || !Array.isArray(value);
+}
+
+function isValidSubjectSimplePropertyValue(
+  property: SubjectSimplePropertyDefinition,
+  value: SubjectScalarValue | undefined,
+) {
+  if (property.valueType === "boolean") return typeof value === "boolean";
+  if (property.valueType === "number" || property.valueType === "currency") {
+    return typeof value === "number" && Number.isFinite(value);
+  }
+  if (typeof value !== "string") return false;
+  if (property.valueType === "date") return isValidISODate(value);
+  if (property.valueType === "select") {
+    return Boolean(property.options?.includes(value));
+  }
+  return true;
 }
 
 function firstFormError(errors: Record<string, string>) {
@@ -2407,6 +2890,8 @@ async function validatePublishableDDQPack(
       taskType: item.task_type,
       title: item.title,
       config: item.config,
+      parentBranchItemId: item.parent_branch_item_id,
+      parentBranchOptionId: item.parent_branch_option_id,
     });
   }
 }
@@ -2421,13 +2906,27 @@ function isValidISODate(value: string) {
 function validateDDQPackItemInput(input: DDQPackItemInput) {
   const title = input.title.trim();
   if (!title) throw new ServiceError(400, "Title is required.");
+  const parentMetadata = normalizeDDQPackItemParentMetadata(input);
 
   if (input.kind === "checkpoint") {
     return {
+      clientId: cleanOptionalString(input.clientId),
       kind: input.kind,
       taskType: null,
       title,
       config: {},
+      ...parentMetadata,
+    };
+  }
+
+  if (input.kind === "branch") {
+    return {
+      clientId: cleanOptionalString(input.clientId),
+      kind: input.kind,
+      taskType: null,
+      title,
+      config: { options: validateDDQBranchOptions(input.config.options) },
+      ...parentMetadata,
     };
   }
 
@@ -2441,9 +2940,66 @@ function validateDDQPackItemInput(input: DDQPackItemInput) {
   if (!definition) throw new ServiceError(400, "Invalid DDQ Pack Item task type.");
 
   return {
+    clientId: cleanOptionalString(input.clientId),
     kind: input.kind,
     taskType: input.taskType,
     title,
     config: definition.normalizeConfig(input.config),
+    ...parentMetadata,
   };
+}
+
+function normalizeDDQPackItemParentMetadata(input: DDQPackItemInput) {
+  const parentBranchItemId = input.parentBranchItemId ?? null;
+  const parentBranchOptionId = cleanOptionalString(input.parentBranchOptionId) ?? null;
+  const parentBranchItemClientId =
+    cleanOptionalString(input.parentBranchItemClientId) ?? null;
+
+  if ((parentBranchItemId || parentBranchItemClientId) && !parentBranchOptionId) {
+    throw new ServiceError(400, "Branch child option is required.");
+  }
+  if (!parentBranchItemId && !parentBranchItemClientId && parentBranchOptionId) {
+    throw new ServiceError(400, "Branch child parent is required.");
+  }
+
+  return {
+    parentBranchItemId,
+    parentBranchOptionId,
+    parentBranchItemClientId,
+  };
+}
+
+function validateDDQBranchOptions(input: unknown) {
+  if (!Array.isArray(input)) {
+    throw new ServiceError(400, "Branch options are required.");
+  }
+  if (input.length < 2 || input.length > 8) {
+    throw new ServiceError(400, "Branches must have 2 to 8 options.");
+  }
+
+  const seen = new Set<string>();
+
+  return input.map((rawOption) => {
+    if (!isRecord(rawOption)) {
+      throw new ServiceError(400, "Branch options are invalid.");
+    }
+
+    const id = cleanOptionalString(rawOption.id);
+    const label = cleanOptionalString(rawOption.label);
+    if (!id || !label) {
+      throw new ServiceError(400, "Branch option labels are required.");
+    }
+
+    const labelKey = label.toLowerCase();
+    if (seen.has(labelKey)) {
+      throw new ServiceError(400, "Branch option labels must be unique.");
+    }
+    seen.add(labelKey);
+
+    return { id, label };
+  });
+}
+
+function branchOptionsFromConfig(config: Record<string, unknown>) {
+  return validateDDQBranchOptions(config.options);
 }

@@ -63,7 +63,9 @@
         "provider-ddq-packs:add-new",
         "provider-ddq-packs:perform-checks",
         "provider-ddq-packs:review-checks",
-        "provider-ddq-packs:approve-checks"
+        "provider-ddq-packs:approve-checks",
+        "provider-subjects:read",
+        "provider-subjects:edit"
       ]
     },
     {
@@ -74,7 +76,9 @@
       "permissions": [
         "provider-ddq-packs:add-new",
         "provider-ddq-packs:perform-checks",
-        "provider-ddq-packs:review-checks"
+        "provider-ddq-packs:review-checks",
+        "provider-subjects:read",
+        "provider-subjects:edit"
       ]
     },
     {
@@ -3219,6 +3223,84 @@
           "status": "active"
         }
       ]
+    }
+  ],
+  "subjects": [
+    {
+      "legacyId": "person-avery-hart",
+      "providerCorporationLegacyId": 2,
+      "subjectTypeKey": "person",
+      "displayName": "Avery Hart",
+      "values": {
+        "name": "Avery Hart",
+        "gender": "prefer-not-to-say",
+        "date_of_birth": "1989-04-12",
+        "employments": [
+          {
+            "employer": "Uptick IT Platform",
+            "date_started": "2021-06-14",
+            "role": "Implementation Lead"
+          }
+        ],
+        "directorships": [
+          {
+            "company": "Clearpath Systems Ltd",
+            "date_started": "2020-02-01",
+            "role": "Non-executive Director"
+          }
+        ],
+        "memberships": [
+          {
+            "association": "Product Safety Guild",
+            "membership_type": "Professional",
+            "status": "active"
+          }
+        ]
+      }
+    },
+    {
+      "legacyId": "person-morgan-lee",
+      "providerCorporationLegacyId": 2,
+      "subjectTypeKey": "person",
+      "displayName": "Morgan Lee",
+      "values": {
+        "name": "Morgan Lee",
+        "gender": "non-binary",
+        "date_of_birth": "1992-09-03",
+        "qualifications": [
+          {
+            "qualification": "Data Protection Practitioner",
+            "grade": "Pass",
+            "issuing_body": "Institute of Data Practice",
+            "date_awarded": "2024-11-22"
+          }
+        ]
+      }
+    },
+    {
+      "legacyId": "document-passport-7421",
+      "providerCorporationLegacyId": 2,
+      "subjectTypeKey": "document",
+      "displayName": "Passport XP7421",
+      "values": {
+        "primary_type": "passport",
+        "secondary_type": "UK passport",
+        "issuing_body": "HM Passport Office",
+        "issue_date": "2023-01-18",
+        "expiry_date": "2033-01-18",
+        "reference_number": "XP7421"
+      }
+    },
+    {
+      "legacyId": "business-event-platform-certification",
+      "providerCorporationLegacyId": 2,
+      "subjectTypeKey": "business_event",
+      "displayName": "Platform certification renewal",
+      "values": {
+        "event_type": "Platform certification renewal",
+        "event_date": "2026-03-15",
+        "related_organisation": "All Checks Out"
+      }
     }
   ]
 }

@@ -8,6 +8,7 @@ import {
   seedFormTemplates,
   seedProviderDDQChecklists,
   seedProviderDDQPacks,
+  seedSubjects,
   seedUsers,
 } from "../../src/database/seedDataRepository";
 import { readSeedFixture } from "./lib/seedFixture";
@@ -40,6 +41,7 @@ async function main() {
     await seedUsers(client, fixture, corporationIdMap, async (email) => {
       return localCognitoSub(email);
     });
+    await seedSubjects(client, fixture, corporationIdMap);
     await seedApplications(client, fixture, corporationIdMap);
     await seedAccessRequests(client, fixture, corporationIdMap);
     const { ddqPackIdMap, ddqPackItemIdMap } = await seedDDQPacks(
@@ -69,7 +71,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${fixture.users.length} local database user(s), ${fixture.ddqPacks.length} DDQ Pack(s), ${fixture.formTemplates.length} form template(s), ${fixture.providerDDQPacks.length} provider DDQ Pack(s), and ${fixture.providerDDQChecklists.length} DDQ Checklist(s) without Cognito.`,
+    `Seeded ${fixture.users.length} local database user(s), ${fixture.ddqPacks.length} DDQ Pack(s), ${fixture.formTemplates.length} form template(s), ${fixture.providerDDQPacks.length} provider DDQ Pack(s), ${fixture.providerDDQChecklists.length} DDQ Checklist(s), and ${fixture.subjects.length} Subject(s) without Cognito.`,
   );
 }
 

@@ -56,7 +56,6 @@ Defined in:
 
 ```text
 services/onboarding-service/database/sql/V1__Create_onboarding_tables.sql
-services/onboarding-service/database/sql/V2__Target_corporation_applications_at_providers.sql
 ```
 
 The current script/database helpers already exist:

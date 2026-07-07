@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  getSubjectTypeDefinition,
+  validateSubjectPropertySelections,
+} from "@shared/subjects";
 import type { FormItem } from "../database/onboardingTypes";
 
 export class FormTemplateValidationError extends Error {}
@@ -20,6 +24,26 @@ const optionsSchema = z
   .array(z.string(), "Form item options are required.")
   .transform((options) => options.map((option) => option.trim()).filter(Boolean))
   .refine((options) => options.length > 0, "At least one option is required.");
+
+const subjectSimplePropertySelectionSchema = z.object({
+  key: z.string().trim().min(1, "Subject property is required."),
+}).strict();
+
+const subjectComplexPropertySelectionSchema = z.object({
+  key: z.string().trim().min(1, "Subject property is required."),
+  columns: z
+    .array(subjectSimplePropertySelectionSchema, "Subject table columns are required.")
+    .refine((columns) => columns.length > 0, "Select at least one Subject table column."),
+}).strict();
+
+const subjectPropertySelectionSchema = z.union([
+  subjectSimplePropertySelectionSchema,
+  subjectComplexPropertySelectionSchema,
+]);
+
+const subjectPropertySelectionsSchema = z
+  .array(subjectPropertySelectionSchema, "Subject properties are required.")
+  .refine((properties) => properties.length > 0, "Select at least one Subject property.");
 
 const formItemSchema = z.discriminatedUnion("type", [
   z.object({
@@ -55,6 +79,35 @@ const formItemSchema = z.discriminatedUnion("type", [
     ...formItemBaseShape,
     type: z.literal("boolean"),
   }).strict(),
+  z.object({
+    ...formItemBaseShape,
+    type: z.literal("subject"),
+    subjectTypeKey: z.string().trim().min(1, "Subject type is required."),
+    repeatable: z.boolean("Subject repeatable flag is required."),
+    selectedProperties: subjectPropertySelectionsSchema,
+  }).strict().superRefine((item, context) => {
+    const subjectType = getSubjectTypeDefinition(item.subjectTypeKey);
+    if (!subjectType) {
+      context.addIssue({
+        code: "custom",
+        message: "Subject group type is invalid.",
+        path: ["subjectTypeKey"],
+      });
+      return;
+    }
+
+    const validation = validateSubjectPropertySelections(
+      subjectType.key,
+      item.selectedProperties,
+    );
+    if (!validation.valid) {
+      context.addIssue({
+        code: "custom",
+        message: validation.error,
+        path: ["selectedProperties"],
+      });
+    }
+  }),
 ]);
 
 const formTemplateSchema = z.object({

@@ -1,6 +1,8 @@
-import type { FormItem, FormItemType, FormTemplateSchema } from "@frontend/api/onboarding/types";
-import { createAssociationFormTemplate, getAssociationFormTemplate, updateAssociationFormTemplate } from "@frontend/api/onboarding/client";
+import type { FormItem, FormItemType, FormTemplateSchema, SubjectType } from "@frontend/api/onboarding/types";
+import { createAssociationFormTemplate, getAssociationFormTemplate, listSubjectTypes, updateAssociationFormTemplate } from "@frontend/api/onboarding/client";
 import { Button } from "@frontend/shadcn/components/ui/button";
+import { Checkbox } from "@frontend/shadcn/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@frontend/shadcn/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@frontend/shadcn/components/ui/dropdown-menu";
 import { Input } from "@frontend/shadcn/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@frontend/shadcn/components/ui/table";
@@ -18,7 +20,10 @@ interface DesignerPlaceholderProps {
   mode: "new" | "edit";
 }
 
-const FORM_ITEM_TYPES: { type: FormItemType; label: string }[] = [
+type DataFormItemType = Exclude<FormItemType, "subject">;
+type SubjectItem = Extract<FormItem, { type: "subject" }>;
+
+const FORM_ITEM_TYPES: { type: DataFormItemType; label: string }[] = [
   { type: "text", label: "Text" },
   { type: "textarea", label: "Long text" },
   { type: "date", label: "Date" },
@@ -39,7 +44,13 @@ type ItemDialogState = {
   draftItem: FormItem;
 };
 
-function createDefaultItem(type: FormItemType): FormItem {
+type SubjectDialogState = {
+  mode: "add" | "edit";
+  initialItem: SubjectItem;
+  draftItem: SubjectItem;
+};
+
+function createDefaultItem(type: DataFormItemType): FormItem {
   const base = {
     id: createStableItemId(),
     label: getDefaultItemLabel(type),
@@ -72,7 +83,7 @@ function createStableItemId() {
   return `item-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function getDefaultItemLabel(type: FormItemType) {
+function getDefaultItemLabel(type: DataFormItemType) {
   switch (type) {
     case "text":
       return "Text field";
@@ -92,6 +103,7 @@ function getDefaultItemLabel(type: FormItemType) {
 }
 
 function getItemTypeLabel(type: FormItemType) {
+  if (type === "subject") return "Subject";
   return FORM_ITEM_TYPES.find((itemType) => itemType.type === type)?.label ?? type;
 }
 
@@ -111,6 +123,10 @@ function normalizeItemForDirtyCheck(item: FormItem): FormItem {
 
   if (nextItem.helpText === "") {
     delete nextItem.helpText;
+  }
+
+  if (nextItem.type === "subject") {
+    return nextItem;
   }
 
   if (
@@ -137,6 +153,10 @@ function normalizeItemForDirtyCheck(item: FormItem): FormItem {
 function validateItemDraft(item: FormItem) {
   if (!item.label.trim()) return "Label is required.";
 
+  if (item.type === "subject" && item.selectedProperties.length === 0) {
+    return "Select at least one Subject property.";
+  }
+
   if (
     (item.type === "select" || item.type === "radio") &&
     item.options.filter((option) => option.trim()).length === 0
@@ -149,6 +169,15 @@ function validateItemDraft(item: FormItem) {
 
 function normalizeItemForDraftSave(item: FormItem): FormItem {
   const nextItem = cloneFormItem(item);
+
+  if (nextItem.type === "subject") {
+    return {
+      ...nextItem,
+      label: nextItem.label.trim(),
+      helpText: nextItem.helpText?.trim() || undefined,
+      selectedProperties: nextItem.selectedProperties,
+    };
+  }
 
   if (nextItem.type === "select" || nextItem.type === "radio") {
     return {
@@ -177,6 +206,9 @@ function validateTemplate(shortName: string, schema: FormTemplateSchema) {
   for (const item of schema.items) {
     if (!item.id) return "Every item must have a stable ID.";
     if (!item.label.trim()) return "Every item needs a label before saving.";
+    if (item.type === "subject" && item.selectedProperties.length === 0) {
+      return `${item.label} needs at least one Subject property before saving.`;
+    }
     if (
       (item.type === "select" || item.type === "radio") &&
       item.options.filter((option) => option.trim()).length === 0
@@ -199,9 +231,302 @@ function normalizeSchemaForSave(schema: FormTemplateSchema): FormTemplateSchema 
         };
       }
 
+      if (item.type === "subject") {
+        return {
+          ...item,
+          label: item.label.trim(),
+          helpText: item.helpText?.trim() || undefined,
+          selectedProperties: item.selectedProperties,
+        };
+      }
+
       return item;
     }),
   };
+}
+
+function itemTypeDisplay(item: FormItem, subjectTypes: SubjectType[]) {
+  if (item.type !== "subject") return getItemTypeLabel(item.type);
+
+  const subjectType = subjectTypes.find(
+    (candidate) => candidate.key === item.subjectTypeKey,
+  );
+  return subjectType ? `Subject: ${subjectType.label}` : `Subject: ${item.subjectTypeKey}`;
+}
+
+function defaultSubjectPropertySelections(subjectType: SubjectType) {
+  const requiredSimpleProperties = subjectType.properties
+    .filter((property) => property.kind === "simple" && property.required)
+    .map((property) => ({ key: property.key }));
+
+  if (requiredSimpleProperties.length > 0) return requiredSimpleProperties;
+
+  const firstProperty = subjectType.properties[0];
+  if (!firstProperty) return [];
+
+  if (firstProperty.kind === "simple") return [{ key: firstProperty.key }];
+
+  return [
+    {
+      key: firstProperty.key,
+      columns: firstProperty.properties.map((column) => ({ key: column.key })),
+    },
+  ];
+}
+
+function addSubjectSelection(
+  item: SubjectItem,
+  selection: SubjectItem["selectedProperties"][number],
+) {
+  return [
+    ...item.selectedProperties.filter((candidate) => candidate.key !== selection.key),
+    selection,
+  ];
+}
+
+function removeSubjectSelection(item: SubjectItem, propertyKey: string) {
+  return item.selectedProperties.filter((selection) => selection.key !== propertyKey);
+}
+
+function updateSubjectTableColumnSelection(
+  item: SubjectItem,
+  propertyKey: string,
+  columnKey: string,
+  selected: boolean,
+) {
+  return item.selectedProperties.map((selection) => {
+    if (selection.key !== propertyKey || !("columns" in selection)) return selection;
+
+    return {
+      ...selection,
+      columns: selected
+        ? Array.from(
+            new Map(
+              [...selection.columns, { key: columnKey }].map((column) => [
+                column.key,
+                column,
+              ]),
+            ).values(),
+          )
+        : selection.columns.filter((column) => column.key !== columnKey),
+    };
+  });
+}
+
+function SubjectGroupEditorDialog({
+  state,
+  subjectTypes,
+  error,
+  canSave,
+  onChange,
+  onCancel,
+  onSave,
+}: {
+  state: SubjectDialogState | null;
+  subjectTypes: SubjectType[];
+  error: string;
+  canSave: boolean;
+  onChange: (updater: (item: SubjectItem) => SubjectItem) => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  const item = state?.draftItem ?? null;
+  const selectedSubjectType = item
+    ? subjectTypes.find((subjectType) => subjectType.key === item.subjectTypeKey)
+    : null;
+
+  return (
+    <Dialog open={Boolean(item)} onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-auto sm:max-w-2xl">
+        {item && (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                {state?.mode === "add" ? "Add Subject" : "Edit Subject"}
+              </DialogTitle>
+              <DialogDescription>
+                Choose the Subject properties respondents will enter each time they add this Subject.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4">
+              <label className="grid gap-1 text-sm font-medium">
+                Subject type
+                <select
+                  className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  value={item.subjectTypeKey}
+                  onChange={(event) => {
+                    const subjectType = subjectTypes.find(
+                      (candidate) => candidate.key === event.target.value,
+                    );
+                    if (!subjectType) return;
+
+                    onChange((current) => ({
+                      ...current,
+                      subjectTypeKey: subjectType.key,
+                      label: subjectType.label,
+                      selectedProperties: defaultSubjectPropertySelections(subjectType),
+                    }));
+                  }}
+                >
+                  {subjectTypes.map((subjectType) => (
+                    <option key={subjectType.key} value={subjectType.key}>
+                      {subjectType.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-1 text-sm font-medium">
+                Panel label
+                <Input
+                  value={item.label}
+                  onChange={(event) =>
+                    onChange((current) => ({ ...current, label: event.target.value }))
+                  }
+                />
+              </label>
+
+              <label className="grid gap-1 text-sm font-medium">
+                Help text
+                <Input
+                  value={item.helpText ?? ""}
+                  onChange={(event) =>
+                    onChange((current) => ({
+                      ...current,
+                      helpText: event.target.value || undefined,
+                    }))
+                  }
+                  placeholder="Optional guidance for this Subject"
+                />
+              </label>
+
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <Checkbox
+                  checked={item.required}
+                  onCheckedChange={(checked) =>
+                    onChange((current) => ({ ...current, required: checked === true }))
+                  }
+                />
+                Require at least one {selectedSubjectType?.label ?? "Subject"}
+              </label>
+
+              <div className="grid gap-2">
+                <h3 className="text-sm font-medium">Properties</h3>
+                <div className="grid gap-2">
+                  {selectedSubjectType?.properties.map((property) => {
+                    const selectedProperty = item.selectedProperties.find(
+                      (candidate) => candidate.key === property.key,
+                    );
+                    const checked = Boolean(selectedProperty);
+
+                    if (property.kind === "simple") {
+                      return (
+                        <label
+                          key={property.key}
+                          className="flex items-center gap-2 rounded-md border p-2 text-sm"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(nextChecked) =>
+                              onChange((current) => ({
+                                ...current,
+                                selectedProperties:
+                                  nextChecked === true
+                                    ? addSubjectSelection(current, { key: property.key })
+                                    : removeSubjectSelection(current, property.key),
+                              }))
+                            }
+                          />
+                          <span className="min-w-0">
+                            <span className="block truncate font-medium">
+                              {property.label}
+                              {property.required && (
+                                <span className="ml-1 text-destructive">*</span>
+                              )}
+                            </span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {property.key}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    }
+
+                    const selectedColumns =
+                      selectedProperty && "columns" in selectedProperty
+                        ? selectedProperty.columns
+                        : [];
+
+                    return (
+                      <div key={property.key} className="grid gap-2 rounded-md border p-2">
+                        <label className="flex items-center gap-2 text-sm">
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(nextChecked) =>
+                              onChange((current) => ({
+                                ...current,
+                                selectedProperties:
+                                  nextChecked === true
+                                    ? addSubjectSelection(current, {
+                                        key: property.key,
+                                        columns: property.properties.map((column) => ({
+                                          key: column.key,
+                                        })),
+                                      })
+                                    : removeSubjectSelection(current, property.key),
+                              }))
+                            }
+                          />
+                          <span className="font-medium">{property.label}</span>
+                        </label>
+                        {checked && (
+                          <div className="ml-6 grid gap-2 sm:grid-cols-2">
+                            {property.properties.map((column) => (
+                              <label key={column.key} className="flex items-center gap-2 text-sm">
+                                <Checkbox
+                                  checked={selectedColumns.some(
+                                    (selection) => selection.key === column.key,
+                                  )}
+                                  onCheckedChange={(nextChecked) =>
+                                    onChange((current) => ({
+                                      ...current,
+                                      selectedProperties: updateSubjectTableColumnSelection(
+                                        current,
+                                        property.key,
+                                        column.key,
+                                        nextChecked === true,
+                                      ),
+                                    }))
+                                  }
+                                />
+                                <span>{column.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {error && <p className="text-sm text-destructive">{error}</p>}
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={onSave} disabled={!canSave}>
+                Save Subject
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
@@ -219,7 +544,9 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
   const [shortName, setShortName] = useState("");
   const [description, setDescription] = useState("");
   const [schema, setSchema] = useState<FormTemplateSchema>(EMPTY_SCHEMA);
+  const [subjectTypes, setSubjectTypes] = useState<SubjectType[]>([]);
   const [itemDialog, setItemDialog] = useState<ItemDialogState | null>(null);
+  const [subjectDialog, setSubjectDialog] = useState<SubjectDialogState | null>(null);
   const [loadingTemplate, setLoadingTemplate] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(mode === "new");
@@ -234,6 +561,17 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
     : "";
   const canSaveItemDialog = Boolean(
     itemDialog && itemDialogDirty && !itemDialogError,
+  );
+  const subjectDialogDirty = Boolean(
+    subjectDialog &&
+      JSON.stringify(subjectDialog.draftItem) !==
+        JSON.stringify(subjectDialog.initialItem),
+  );
+  const subjectDialogError = subjectDialog
+    ? validateItemDraft(subjectDialog.draftItem)
+    : "";
+  const canSaveSubjectDialog = Boolean(
+    subjectDialog && subjectDialogDirty && !subjectDialogError,
   );
 
   useEffect(() => {
@@ -264,6 +602,7 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
         setDescription(result.formTemplate.description);
         setSchema(result.formTemplate.schema_json);
         setItemDialog(null);
+        setSubjectDialog(null);
         setDirty(false);
       } catch (err) {
         if (!cancelled) {
@@ -280,6 +619,27 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
       cancelled = true;
     };
   }, [mode, currentTemplateId, userLoading]);
+
+  useEffect(() => {
+    if (userLoading) return;
+
+    let cancelled = false;
+
+    async function loadSubjectTypes() {
+      try {
+        const result = await listSubjectTypes();
+        if (!cancelled) setSubjectTypes(result.subjectTypes);
+      } catch {
+        if (!cancelled) setSubjectTypes([]);
+      }
+    }
+
+    void loadSubjectTypes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userLoading]);
 
   function closeDesigner() {
     if (dirty && !window.confirm("Close without saving your changes?")) {
@@ -306,7 +666,7 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
     markDirty();
   }
 
-  function openAddItemDialog(type: FormItemType) {
+  function openAddItemDialog(type: DataFormItemType) {
     if (readOnly || !canEditForms) return;
 
     const item = createDefaultItem(type);
@@ -319,8 +679,44 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
     setError("");
   }
 
+  function createDefaultSubjectItem(subjectType: SubjectType): SubjectItem {
+    return {
+      id: createStableItemId(),
+      type: "subject",
+      label: subjectType.label,
+      required: false,
+      subjectTypeKey: subjectType.key,
+      repeatable: true,
+      selectedProperties: defaultSubjectPropertySelections(subjectType),
+    };
+  }
+
+  function openAddSubjectDialog(subjectType: SubjectType) {
+    if (readOnly || !canEditForms) return;
+
+    const item = createDefaultSubjectItem(subjectType);
+    setSubjectDialog({
+      mode: "add",
+      initialItem: cloneFormItem(item) as SubjectItem,
+      draftItem: item,
+    });
+    setMessage("");
+    setError("");
+  }
+
   function openEditItemDialog(item: FormItem) {
     if (readOnly || !canEditForms) return;
+
+    if (item.type === "subject") {
+      setSubjectDialog({
+        mode: "edit",
+        initialItem: cloneFormItem(item) as SubjectItem,
+        draftItem: cloneFormItem(item) as SubjectItem,
+      });
+      setMessage("");
+      setError("");
+      return;
+    }
 
     setItemDialog({
       mode: "edit",
@@ -342,6 +738,17 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
     setItemDialog(null);
   }
 
+  function closeSubjectDialog() {
+    if (
+      subjectDialogDirty &&
+      !window.confirm("Discard Subject changes? These changes have not been applied.")
+    ) {
+      return;
+    }
+
+    setSubjectDialog(null);
+  }
+
   function saveItemDialog() {
     if (readOnly || !itemDialog || !canSaveItemDialog) return;
 
@@ -360,8 +767,38 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
     markDirty();
   }
 
+  function saveSubjectDialog() {
+    if (readOnly || !subjectDialog || !canSaveSubjectDialog) return;
+
+    const nextItem = normalizeItemForDraftSave(subjectDialog.draftItem);
+    if (nextItem.type !== "subject") return;
+
+    setSchema((current) => ({
+      ...current,
+      items:
+        subjectDialog.mode === "add"
+          ? [...current.items, nextItem]
+          : current.items.map((item) =>
+              item.id === nextItem.id ? nextItem : item,
+            ),
+    }));
+    setSubjectDialog(null);
+    markDirty();
+  }
+
   function updateItemDialog(updater: (item: FormItem) => FormItem) {
     setItemDialog((current) =>
+      current
+        ? {
+            ...current,
+            draftItem: updater(current.draftItem),
+          }
+        : current,
+    );
+  }
+
+  function updateSubjectDialog(updater: (item: SubjectItem) => SubjectItem) {
+    setSubjectDialog((current) =>
       current
         ? {
             ...current,
@@ -555,10 +992,10 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
           </div>
 
           {!readOnly && (
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm">
+                <Button size="sm" variant="outline">
                   <Plus className="size-4" />
                   Add item
                   <ChevronDown className="size-4" />
@@ -571,6 +1008,25 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
                     onSelect={() => openAddItemDialog(itemType.type)}
                   >
                     {itemType.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" disabled={subjectTypes.length === 0}>
+                  <Plus className="size-4" />
+                  Add Subject
+                  <ChevronDown className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {subjectTypes.map((subjectType) => (
+                  <DropdownMenuItem
+                    key={subjectType.key}
+                    onSelect={() => openAddSubjectDialog(subjectType)}
+                  >
+                    {subjectType.label}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -612,8 +1068,8 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
                       </div>
                     </TableCell>
                     <TableCell className="min-w-0 text-muted-foreground">
-                      <div className="truncate" title={getItemTypeLabel(item.type)}>
-                        {getItemTypeLabel(item.type)}
+                      <div className="truncate" title={itemTypeDisplay(item, subjectTypes)}>
+                        {itemTypeDisplay(item, subjectTypes)}
                       </div>
                     </TableCell>
                     <TableCell>{item.required ? "Yes" : "No"}</TableCell>
@@ -660,7 +1116,7 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
                 <p className="text-sm text-muted-foreground">{description}</p>
               )}
             </div>
-            <FormPreview schema={schema} />
+            <FormPreview schema={schema} subjectTypes={subjectTypes} />
           </div>
         </section>
       </div>
@@ -674,6 +1130,15 @@ export const FormTemplateDesigner = ({ mode }: DesignerPlaceholderProps) => {
         onDeleteOption={deleteItemDialogOption}
         onCancel={closeItemDialog}
         onSave={saveItemDialog}
+      />
+      <SubjectGroupEditorDialog
+        state={subjectDialog}
+        subjectTypes={subjectTypes}
+        error={subjectDialogError}
+        canSave={canSaveSubjectDialog}
+        onChange={updateSubjectDialog}
+        onCancel={closeSubjectDialog}
+        onSave={saveSubjectDialog}
       />
     </DesignerShell>
   );

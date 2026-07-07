@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS form_templates (
         REFERENCES corporation(id)
         ON DELETE CASCADE,
     CONSTRAINT form_templates_schema_version_check
-        CHECK ((schema_json->>'version') IS NOT NULL AND (schema_json->>'version') = '1'),
+        CHECK ((schema_json->>'version') IS NOT NULL),
     CONSTRAINT form_templates_schema_items_check
         CHECK (schema_json ? 'items' AND jsonb_typeof(schema_json->'items') = 'array')
 );

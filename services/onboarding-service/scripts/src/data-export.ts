@@ -78,6 +78,14 @@ type ProviderDDQChecklistTaskRow = {
   status: SeedFixture["providerDDQChecklists"][number]["tasks"][number]["status"];
 };
 
+type SubjectRow = {
+  id: number;
+  provider_corporation_id: number;
+  subject_type_key: string;
+  display_name: string;
+  values_json: SeedFixture["subjects"][number]["values"];
+};
+
 async function main() {
   const client = await createDbClient();
 
@@ -135,6 +143,15 @@ async function main() {
          FROM provider_ddq_checklist_task
          ORDER BY checklist_id, id`,
       );
+    const subjectResult = await client.query<SubjectRow>(
+      `SELECT id,
+              provider_corporation_id,
+              subject_type_key,
+              display_name,
+              values_json
+       FROM subject
+       ORDER BY provider_corporation_id, id`,
+    );
 
     const itemsByPackId = groupBy(ddqPackItemResult.rows, (row) => row.pack_id);
     const tasksByChecklistId = groupBy(
@@ -226,12 +243,19 @@ async function main() {
           status: task.status,
         })),
       })),
+      subjects: subjectResult.rows.map((row) => ({
+        legacyId: `subject-${row.id}`,
+        providerCorporationLegacyId: row.provider_corporation_id,
+        subjectTypeKey: row.subject_type_key,
+        displayName: row.display_name,
+        values: row.values_json,
+      })),
     };
 
     const fixturePath = await writeSeedFixture(fixture);
     console.log(`Exported seed fixture to ${fixturePath}.`);
     console.log(
-      `Captured ${fixture.corporations.length} corporation(s), ${fixture.users.length} user(s), ${fixture.corporationApplications.length} application(s), ${fixture.corporationAccessRequests.length} access request(s), ${fixture.ddqPacks.length} DDQ Pack(s), ${fixture.formTemplates.length} form template(s), ${fixture.providerDDQPacks.length} provider DDQ Pack(s), and ${fixture.providerDDQChecklists.length} DDQ Checklist(s).`,
+      `Captured ${fixture.corporations.length} corporation(s), ${fixture.users.length} user(s), ${fixture.corporationApplications.length} application(s), ${fixture.corporationAccessRequests.length} access request(s), ${fixture.ddqPacks.length} DDQ Pack(s), ${fixture.formTemplates.length} form template(s), ${fixture.providerDDQPacks.length} provider DDQ Pack(s), ${fixture.providerDDQChecklists.length} DDQ Checklist(s), and ${fixture.subjects.length} Subject(s).`,
     );
   } finally {
     await client.end();

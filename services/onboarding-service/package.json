@@ -20,6 +20,7 @@
     "@backend/events": "workspace:*",
     "@shared/aws-accounts": "workspace:*",
     "@shared/permissions": "workspace:*",
+    "@shared/subjects": "workspace:*",
     "aws-cdk-lib": "2.235.1",
     "constructs": "10.4.5",
     "@aws-sdk/client-eventbridge": "^3.1063.0",

@@ -1,4 +1,5 @@
 import type { Client } from "pg";
+import { normalizeSubjectValues, subjectDisplayName } from "@shared/subjects";
 import type { SeedFixture } from "../../scripts/src/lib/seedFixture";
 
 const TABLES_IN_RESET_ORDER = [
@@ -15,6 +16,7 @@ const TABLES_IN_RESET_ORDER = [
   "ddq_pack_item",
   "ddq_pack",
   "form_templates",
+  "subject",
   "corporation_access_request",
   "corporation_application",
   "app_user",
@@ -75,6 +77,53 @@ export async function seedUsers(
       `INSERT INTO app_user (corporation_id, cognito_sub, email, status, permissions)
        VALUES ($1, $2, $3, $4, $5)`,
       [corporationId, cognitoSub, user.email, user.status, user.permissions],
+    );
+  }
+}
+
+export async function seedSubjects(
+  client: Client,
+  fixture: SeedFixture,
+  corporationIdMap: Map<number, number>,
+) {
+  const subjectLegacyIds = new Set<string>();
+
+  for (const subject of fixture.subjects) {
+    if (subjectLegacyIds.has(subject.legacyId)) {
+      throw new Error(`Duplicate seeded subject legacy id ${subject.legacyId}.`);
+    }
+    subjectLegacyIds.add(subject.legacyId);
+
+    const providerCorporationId = requireMappedId(
+      corporationIdMap,
+      subject.providerCorporationLegacyId,
+      "provider corporation",
+    );
+    const validation = normalizeSubjectValues(
+      subject.subjectTypeKey,
+      subject.values,
+    );
+
+    if (!validation.valid) {
+      throw new Error(
+        `Invalid seeded subject ${subject.legacyId}: ${validation.error}`,
+      );
+    }
+
+    await client.query(
+      `INSERT INTO subject (
+         provider_corporation_id,
+         subject_type_key,
+         display_name,
+         values_json
+       )
+       VALUES ($1, $2, $3, $4::jsonb)`,
+      [
+        providerCorporationId,
+        subject.subjectTypeKey,
+        subjectDisplayName(subject.subjectTypeKey, validation.values),
+        JSON.stringify(validation.values),
+      ],
     );
   }
 }

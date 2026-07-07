@@ -245,6 +245,9 @@ importers:
       '@shared/permissions':
         specifier: workspace:*
         version: link:../../shared/permissions
+      '@shared/subjects':
+        specifier: workspace:*
+        version: link:../../shared/subjects
     devDependencies:
       typescript:
         specifier: 5.9.3
@@ -349,6 +352,15 @@ importers:
         version: 5.9.3
 
   packages/shared/permissions:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@25.9.3)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.9.3)(typescript@5.9.3))(vite@7.3.5(@types/node@25.9.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.21.0))
+
+  packages/shared/subjects:
     devDependencies:
       typescript:
         specifier: 5.9.3
@@ -474,6 +486,9 @@ importers:
       '@shared/permissions':
         specifier: workspace:*
         version: link:../../packages/shared/permissions
+      '@shared/subjects':
+        specifier: workspace:*
+        version: link:../../packages/shared/subjects
       aws-cdk-lib:
         specifier: 2.235.1
         version: 2.235.1(constructs@10.4.5)

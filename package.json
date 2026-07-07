@@ -24,7 +24,7 @@
     "stop:local": "bash scripts/local-stop.sh",
     "aws:accounts-config": "bash scripts/generate-aws-accounts-config.sh",
     "build": "pnpm -r build",
-    "unit-test:frontend": "pnpm exec vitest run --project @shared/permissions --project @apps/core",
+    "unit-test:frontend": "pnpm exec vitest run --project @shared/permissions --project @shared/subjects --project @apps/core",
     "unit-test:backend": "pnpm exec vitest run --project @services/onboarding-service",
     "unit-test:all": "pnpm run unit-test:frontend && pnpm run unit-test:backend",
     "e2e-test:frontend": "bash ui-testing/playwright/scripts/run-frontend-e2e.sh",

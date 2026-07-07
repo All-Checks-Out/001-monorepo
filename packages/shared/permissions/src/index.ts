@@ -26,6 +26,8 @@ export const PERMISSIONS_BY_CORPORATION_TYPE = {
     "provider-ddq-packs:perform-checks",
     "provider-ddq-packs:review-checks",
     "provider-ddq-packs:approve-checks",
+    "provider-subjects:read",
+    "provider-subjects:edit",
   ],
   AGENT: ["own-users:read", "own-users:invite", "own-user-permissions:change"],
   STAKEHOLDER: ["own-users:read", "own-users:invite", "own-user-permissions:change"],

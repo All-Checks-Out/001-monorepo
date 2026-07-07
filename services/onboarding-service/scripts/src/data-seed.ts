@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { normalizeSubjectValues } from "@shared/subjects";
 import { createSeedCognitoUser } from "./lib/cognitoSeed";
 import { createDbClient } from "./lib/onboardingDatabase";
 import { readSeedFixture, type SeedFixture } from "./lib/seedFixture";
@@ -15,6 +16,7 @@ const TABLES_IN_DELETE_ORDER = [
   "ddq_pack_item",
   "ddq_pack",
   "form_templates",
+  "subject",
   "corporation_access_request",
   "corporation_application",
   "app_user",
@@ -29,6 +31,7 @@ const SEQUENCES_IN_RESET_ORDER = [
   "ddq_pack_item_id_seq",
   "ddq_pack_id_seq",
   "form_templates_id_seq",
+  "subject_id_seq",
   "corporation_access_request_id_seq",
   "corporation_application_id_seq",
   "app_user_id_seq",
@@ -108,6 +111,53 @@ async function seedUsers(
       `INSERT INTO app_user (corporation_id, cognito_sub, email, status, permissions)
        VALUES ($1, $2, $3, $4, $5)`,
       [corporationId, cognitoSub, user.email, user.status, user.permissions],
+    );
+  }
+}
+
+async function seedSubjects(
+  client: DbClient,
+  fixture: SeedFixture,
+  corporationIdMap: Map<number, number>,
+) {
+  const subjectLegacyIds = new Set<string>();
+
+  for (const subject of fixture.subjects) {
+    if (subjectLegacyIds.has(subject.legacyId)) {
+      throw new Error(`Duplicate seeded subject legacy id ${subject.legacyId}.`);
+    }
+    subjectLegacyIds.add(subject.legacyId);
+
+    const providerCorporationId = requireMappedId(
+      corporationIdMap,
+      subject.providerCorporationLegacyId,
+      "provider corporation",
+    );
+    const validation = normalizeSubjectValues(
+      subject.subjectTypeKey,
+      subject.values,
+    );
+
+    if (!validation.valid) {
+      throw new Error(
+        `Invalid seeded subject ${subject.legacyId}: ${validation.error}`,
+      );
+    }
+
+    await client.query(
+      `INSERT INTO subject (
+         provider_corporation_id,
+         subject_type_key,
+         display_name,
+         values_json
+       )
+       VALUES ($1, $2, $3, $4::jsonb)`,
+      [
+        providerCorporationId,
+        subject.subjectTypeKey,
+        subject.displayName,
+        JSON.stringify(validation.values),
+      ],
     );
   }
 }
@@ -341,6 +391,7 @@ async function main() {
     await clearExistingRows(client);
     const corporationIdMap = await seedCorporations(client, fixture);
     await seedUsers(client, fixture, corporationIdMap);
+    await seedSubjects(client, fixture, corporationIdMap);
     await seedApplications(client, fixture, corporationIdMap);
     await seedAccessRequests(client, fixture, corporationIdMap);
     const { ddqPackIdMap, ddqPackItemIdMap } = await seedDDQPacks(
@@ -370,7 +421,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${fixture.corporations.length} corporation(s), ${fixture.users.length} Cognito/database user(s), ${fixture.corporationApplications.length} application(s), ${fixture.corporationAccessRequests.length} access request(s), ${fixture.ddqPacks.length} DDQ Pack(s), ${fixture.formTemplates.length} form template(s), ${fixture.providerDDQPacks.length} provider DDQ Pack(s), and ${fixture.providerDDQChecklists.length} DDQ Checklist(s).`,
+    `Seeded ${fixture.corporations.length} corporation(s), ${fixture.users.length} Cognito/database user(s), ${fixture.corporationApplications.length} application(s), ${fixture.corporationAccessRequests.length} access request(s), ${fixture.ddqPacks.length} DDQ Pack(s), ${fixture.formTemplates.length} form template(s), ${fixture.providerDDQPacks.length} provider DDQ Pack(s), ${fixture.providerDDQChecklists.length} DDQ Checklist(s), and ${fixture.subjects.length} Subject(s).`,
   );
 }
 

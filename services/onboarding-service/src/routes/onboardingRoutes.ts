@@ -31,6 +31,7 @@ import {
   listLocalDevUsers,
 } from "../controllers/localDevController";
 import {
+  archiveProviderSubject,
   approveProviderCorporationApplication,
   approveProviderAccessRequest,
   changeProviderDDQChecklistStatus,
@@ -39,16 +40,21 @@ import {
   createProviderDDQChecklist,
   createProviderDDQChecklistTaskEvidenceUploadUrl,
   createProviderDDQPack,
+  createProviderSubject,
   getProviderCorporationApplications,
   getProviderAccessRequests,
   listAvailableProviderDDQPacks,
   listProviderDDQPackItems,
   listProviderDDQPacks,
+  listProviderSubjects,
   readProviderDDQChecklist,
   readProviderDDQChecklistTask,
+  readProviderSubject,
   rejectProviderCorporationApplication,
   rejectProviderAccessRequest,
   saveProviderDDQChecklistTaskFormResponse,
+  selectProviderDDQChecklistBranchOption,
+  updateProviderSubject,
   updateProviderDDQChecklistTaskEvidenceTags,
 } from "../controllers/providerController";
 import {
@@ -60,6 +66,7 @@ import {
   getMe,
   getMyAccessRequests,
   getMyCorporation,
+  getSubjectTypes,
   getMyUsers,
   inviteMyUser,
   updateMyCorporationUserPermissions,
@@ -90,6 +97,7 @@ localDevRoutes.get("/users", listLocalDevUsers);
 localDevRoutes.post("/evidence-uploads/complete", completeLocalDevEvidenceUpload);
 
 protectedRoutes.get("/me", getMe);
+protectedRoutes.get("/subject-types", getSubjectTypes);
 protectedRoutes.get("/my-corporation", getMyCorporation);
 protectedRoutes.get("/my-users", getMyUsers);
 protectedRoutes.post("/my-users/invites", inviteMyUser);
@@ -134,6 +142,11 @@ protectedRoutes.get("/provider/access-requests", getProviderAccessRequests);
 protectedRoutes.post("/provider/access-requests/:id/approve", approveProviderAccessRequest);
 protectedRoutes.post("/provider/access-requests/:id/reject", rejectProviderAccessRequest);
 protectedRoutes.get("/provider/ddq-packs", listProviderDDQPacks);
+protectedRoutes.get("/provider/subjects", listProviderSubjects);
+protectedRoutes.post("/provider/subjects", createProviderSubject);
+protectedRoutes.get("/provider/subjects/:subjectId", readProviderSubject);
+protectedRoutes.put("/provider/subjects/:subjectId", updateProviderSubject);
+protectedRoutes.post("/provider/subjects/:subjectId/archive", archiveProviderSubject);
 protectedRoutes.post("/provider/ddq-packs", createProviderDDQPack);
 protectedRoutes.get("/provider/ddq-packs/available", listAvailableProviderDDQPacks);
 protectedRoutes.get("/provider/ddq-packs/:packId/checklist", readProviderDDQChecklist);
@@ -142,6 +155,10 @@ protectedRoutes.post("/provider/ddq-packs/:packId/checklist/status", changeProvi
 protectedRoutes.post(
   "/provider/ddq-packs/:packId/checklist/tasks/:taskId/status",
   changeProviderDDQChecklistTaskStatus,
+);
+protectedRoutes.put(
+  "/provider/ddq-packs/:packId/checklist/branches/:branchTaskId/selection",
+  selectProviderDDQChecklistBranchOption,
 );
 protectedRoutes.get(
   "/provider/ddq-packs/:packId/checklist/tasks/:taskId",

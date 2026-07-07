@@ -31,6 +31,8 @@ type ChecklistTaskContextJoinRow = DDQPackRow & {
   task_type: ProviderDDQChecklistTaskWithItemRow["task_type"];
   title: string;
   config: Record<string, unknown>;
+  parent_branch_item_id: number | null;
+  parent_branch_option_id: string | null;
 };
 
 type EvidenceContextRow = ProviderDDQChecklistTaskEvidenceRow & {
@@ -84,7 +86,9 @@ export async function readProviderDDQChecklistTaskContext(
             dpi.kind,
             dpi.task_type,
             dpi.title,
-            dpi.config
+            dpi.config,
+            dpi.parent_branch_item_id,
+            dpi.parent_branch_option_id
        FROM provider_ddq_pack pdp
        JOIN ddq_pack dp ON dp.id = pdp.ddq_pack_id
        JOIN provider_ddq_checklist pc ON pc.provider_ddq_pack_id = pdp.id
@@ -130,6 +134,8 @@ export async function readProviderDDQChecklistTaskContext(
       task_type: row.task_type,
       title: row.title,
       config: row.config,
+      parent_branch_item_id: row.parent_branch_item_id,
+      parent_branch_option_id: row.parent_branch_option_id,
     },
   };
 }

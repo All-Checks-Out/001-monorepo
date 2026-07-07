@@ -9,6 +9,7 @@ packages:
   - "packages/backend/events"
   - "packages/shared/aws-accounts"
   - "packages/shared/permissions"
+  - "packages/shared/subjects"
   - "packages/frontend/api"
   - "packages/frontend/app-ui"
   - "packages/frontend/auth"

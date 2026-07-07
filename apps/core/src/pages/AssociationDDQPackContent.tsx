@@ -2,6 +2,7 @@ import type {
   DDQDocumentType,
   DDQPack,
   DDQPackItem,
+  DDQBranchOption,
   DDQPackItemKind,
   DDQTaskType,
   FormTemplateSummary,
@@ -41,6 +42,7 @@ import {
   TableRow,
 } from "@frontend/shadcn/components/ui/table";
 import { ChevronDown, Edit, FileText, Plus, Trash2 } from "lucide-react";
+import type { ReactNode } from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Page from "../components/Page";
@@ -53,6 +55,7 @@ import { InsertionRow } from "./InsertionRow";
 type DraftPackItem = SaveDDQPackDraftPayload["items"][number] & {
   clientId: string;
   id?: number;
+  parent_branch_item_client_id: string | null;
 };
 
 type PackDraftState = {
@@ -66,6 +69,7 @@ type ItemFormState = {
   title: string;
   document_type: DDQDocumentType;
   form_template_id: number | "";
+  branch_options: DDQBranchOption[];
 };
 
 type ItemEditSession = {
@@ -74,8 +78,20 @@ type ItemEditSession = {
   initialForm: ItemFormState;
 };
 
+type BranchParent = {
+  branchClientId: string | null;
+  optionId: string | null;
+};
+
+type DraftItemSection = {
+  id: string;
+  items: DraftPackItem[];
+  startIndex: number;
+  appendIndex: number;
+};
+
 type TaskTypeFilter = "all" | DDQTaskType | "checkpoint";
-type AddItemType = DDQTaskType | "checkpoint";
+type AddItemType = DDQTaskType | "checkpoint" | "branch";
 
 const defaultItemForm: ItemFormState = {
   kind: "ddq-task",
@@ -83,6 +99,7 @@ const defaultItemForm: ItemFormState = {
   title: "",
   document_type: "passport",
   form_template_id: "",
+  branch_options: [],
 };
 
 const addItemOptions: { value: AddItemType; label: string }[] = [
@@ -91,15 +108,14 @@ const addItemOptions: { value: AddItemType; label: string }[] = [
     label: `${definition.label} task`,
   })),
   { value: "checkpoint", label: "Checkpoint" },
+  { value: "branch", label: "Branch" },
 ];
 
-const taskTypeOptions: { value: AddItemType; label: string }[] = [
-  ...DDQ_TASK_DEFINITIONS.map((definition) => ({
+const taskTypeOptions: { value: DDQTaskType; label: string }[] =
+  DDQ_TASK_DEFINITIONS.map((definition) => ({
     value: definition.type,
     label: `${definition.label} task`,
-  })),
-  { value: "checkpoint", label: "Checkpoint" },
-];
+  }));
 
 const AssociationDDQPackContent = () => {
   const { hasPermission } = useCurrentUser();
@@ -112,6 +128,10 @@ const AssociationDDQPackContent = () => {
   const [baseline, setBaseline] = useState<PackDraftState | null>(null);
   const [draft, setDraft] = useState<PackDraftState | null>(null);
   const [itemEditSession, setItemEditSession] = useState<ItemEditSession | null>(null);
+  const [pendingParent, setPendingParent] = useState<BranchParent>({
+    branchClientId: null,
+    optionId: null,
+  });
   const [form, setForm] = useState<ItemFormState>(defaultItemForm);
   const [taskTypeFilter, setTaskTypeFilter] = useState<TaskTypeFilter>("all");
   const [formTemplates, setFormTemplates] = useState<FormTemplateSummary[]>([]);
@@ -178,11 +198,16 @@ const AssociationDDQPackContent = () => {
     };
   }, [canEditDDQPacks, readOnly]);
 
-  function openCreateForm(index: number, itemType: AddItemType = "document-upload") {
+  function openCreateForm(
+    index: number,
+    itemType: AddItemType = "document-upload",
+    parent: BranchParent = { branchClientId: null, optionId: null },
+  ) {
     if (!canEditDDQPacks || !draft) return;
 
     const nextForm = defaultFormForItemType(itemType);
     setItemEditSession({ mode: "add", index, initialForm: nextForm });
+    setPendingParent(parent);
     setForm(nextForm);
     clearStatus();
   }
@@ -192,6 +217,10 @@ const AssociationDDQPackContent = () => {
 
     const nextForm = itemToForm(item);
     setItemEditSession({ mode: "edit", index, initialForm: nextForm });
+    setPendingParent({
+      branchClientId: item.parent_branch_item_client_id,
+      optionId: item.parent_branch_option_id ?? null,
+    });
     setForm(nextForm);
     clearStatus();
   }
@@ -199,6 +228,10 @@ const AssociationDDQPackContent = () => {
   function openViewForm(item: DraftPackItem, index: number) {
     const nextForm = itemToForm(item);
     setItemEditSession({ mode: "view", index, initialForm: nextForm });
+    setPendingParent({
+      branchClientId: item.parent_branch_item_client_id,
+      optionId: item.parent_branch_option_id ?? null,
+    });
     setForm(nextForm);
     clearStatus();
   }
@@ -236,7 +269,12 @@ const AssociationDDQPackContent = () => {
 
     const existing =
       itemEditSession.mode === "edit" ? draft.items[itemEditSession.index] : null;
-    const item = formToDraftItem(form, existing, () => `new-${nextNewItemId.current++}`);
+    const item = formToDraftItem(
+      form,
+      existing,
+      pendingParent,
+      () => `new-${nextNewItemId.current++}`,
+    );
     const items = [...draft.items];
 
     if (itemEditSession.mode === "edit") {
@@ -259,9 +297,11 @@ const AssociationDDQPackContent = () => {
       return;
     }
 
+    const removedIds = descendantClientIds(draft.items, item.clientId);
+    removedIds.add(item.clientId);
     setDraft({
       ...draft,
-      items: draft.items.filter((candidate) => candidate.clientId !== item.clientId),
+      items: draft.items.filter((candidate) => !removedIds.has(candidate.clientId)),
     });
     clearStatus();
   }
@@ -273,6 +313,7 @@ const AssociationDDQPackContent = () => {
 
   function closeItemForm() {
     setItemEditSession(null);
+    setPendingParent({ branchClientId: null, optionId: null });
     setForm(defaultItemForm);
   }
 
@@ -283,9 +324,10 @@ const AssociationDDQPackContent = () => {
 
   const formTitle = useMemo(() => {
     if (!itemEditSession) return "";
-    if (itemEditSession.mode === "view") return "View Item";
-    return itemEditSession.mode === "edit" ? "Edit Item" : "Add Item";
-  }, [itemEditSession]);
+    const itemLabel = form.kind === "branch" ? "Branch Item" : "Item";
+    if (itemEditSession.mode === "view") return `View ${itemLabel}`;
+    return itemEditSession.mode === "edit" ? `Edit ${itemLabel}` : `Add ${itemLabel}`;
+  }, [form.kind, itemEditSession]);
   const selectedItemBreadcrumbLabel = itemEditSession
     ? form.title.trim() || formTitle
     : "";
@@ -304,6 +346,9 @@ const AssociationDDQPackContent = () => {
       draft.pack.valid_to &&
       !dateRangeError,
   );
+  const branchOptionError = form.kind === "branch"
+    ? validateBranchOptions(form.branch_options)
+    : "";
   const isItemDirty = Boolean(
     itemEditSession &&
       itemEditSession.mode !== "view" &&
@@ -332,16 +377,242 @@ const AssociationDDQPackContent = () => {
     itemEditSession &&
       itemEditSession.mode !== "view" &&
       isItemValid &&
+      !branchOptionError &&
       (itemEditSession.mode === "add" || isItemDirty),
   );
   const visibleItems = readOnly
-    ? (draft?.items ?? []).filter((item) => matchesTaskTypeFilter(item, taskTypeFilter))
-    : (draft?.items ?? []);
+    ? (draft?.items ?? []).filter(
+        (item) =>
+          !item.parent_branch_item_client_id &&
+          matchesTaskTypeFilter(item, taskTypeFilter),
+      )
+    : getSiblingItems(draft?.items ?? [], null, null);
+  const itemSections = readOnly
+    ? [
+        {
+          id: "read-only-items",
+          items: visibleItems,
+          startIndex: 0,
+          appendIndex: draft?.items.length ?? 0,
+        },
+      ]
+    : splitItemsIntoSections(visibleItems);
   const itemTotal = draft?.items.length ?? 0;
   const itemCountLabel =
     readOnly && taskTypeFilter !== "all"
       ? `${visibleItems.length} of ${itemTotal}`
       : `${itemTotal}`;
+  const itemFormPanel = itemEditSession ? (
+    <div className="grid gap-3 border-2 border-red-500 bg-muted/20 p-4">
+      <h2 className="text-base font-medium">{formTitle}</h2>
+      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_2fr]">
+        {form.kind === "ddq-task" && (
+          <>
+            <select
+              aria-label="DDQ task type"
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              value={form.task_type}
+              disabled={loading || itemEditSession.mode === "edit" || isViewingItem}
+              onChange={(event) => {
+                const itemType = parseAddItemType(event.target.value);
+                if (itemType) setForm(nextFormForItemType(itemType, form));
+              }}
+            >
+              {taskTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {form.task_type === "document-upload" ? (
+              <select
+                aria-label="Document type"
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={form.document_type}
+                disabled={loading || isViewingItem}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    document_type: event.target.value as DDQDocumentType,
+                  })
+                }
+              >
+                {DDQ_DOCUMENT_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            ) : form.task_type === "form-completion" ? (
+              <select
+                aria-label="Form template"
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={form.form_template_id}
+                disabled={loading || formTemplatesLoading || isViewingItem}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    form_template_id: event.target.value
+                      ? Number(event.target.value)
+                      : "",
+                  })
+                }
+              >
+                <option value="">
+                  {formDocumentTitle(itemBeingEdited?.config)
+                    ? `Keep copied form: ${formDocumentTitle(itemBeingEdited?.config)}`
+                    : "Select form template"}
+                </option>
+                {formTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.short_name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div />
+            )}
+          </>
+        )}
+        <Input
+          className={form.kind === "ddq-task" ? undefined : "sm:col-span-3"}
+          value={form.title}
+          placeholder="Title"
+          disabled={loading || isViewingItem}
+          onChange={(event) => setForm({ ...form, title: event.target.value })}
+        />
+      </div>
+      {form.kind === "ddq-task" && form.task_type === "form-completion" && (
+        <div className="grid gap-1 text-sm text-muted-foreground">
+          <p>
+            Select a form template. The template definition will be copied into
+            this DDQ pack item, so later template edits or deletion will not
+            affect this task.
+          </p>
+          {formTemplatesLoading && <p>Loading form templates...</p>}
+          {formTemplatesError && (
+            <p className="text-destructive">{formTemplatesError}</p>
+          )}
+          {!formTemplatesLoading &&
+            !formTemplatesError &&
+            formTemplates.length === 0 &&
+            !formDocumentTitle(itemBeingEdited?.config) && (
+              <p className="text-destructive">
+                Create a form template before adding a form completion task.
+              </p>
+            )}
+        </div>
+      )}
+      {form.kind === "branch" && (
+        <div className="grid gap-2">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {form.branch_options.map((option, optionIndex) => (
+              <div
+                className="grid grid-cols-[1fr_auto] gap-2"
+                key={option.id}
+              >
+                <Input
+                  value={option.label}
+                  placeholder={`Option ${optionIndex + 1}`}
+                  disabled={loading || isViewingItem}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      branch_options: form.branch_options.map((candidate) =>
+                        candidate.id === option.id
+                          ? { ...candidate, label: event.target.value }
+                          : candidate,
+                      ),
+                    })
+                  }
+                />
+                {!isViewingItem && (
+                  <Button
+                    type="button"
+                    size="icon-sm"
+                    variant="outline"
+                    disabled={loading || form.branch_options.length <= 2}
+                    title="Remove option"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        branch_options: form.branch_options.filter(
+                          (candidate) => candidate.id !== option.id,
+                        ),
+                      })
+                    }
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          {branchOptionError && (
+            <p className="text-sm text-destructive">{branchOptionError}</p>
+          )}
+          {!isViewingItem && (
+            <Button
+              className="w-fit"
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={loading || form.branch_options.length >= 8}
+              onClick={() =>
+                setForm({
+                  ...form,
+                  branch_options: [
+                    ...form.branch_options,
+                    { id: createBranchOptionId(), label: "" },
+                  ],
+                })
+              }
+            >
+              <Plus className="size-4" />
+              Add option
+            </Button>
+          )}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {!isViewingItem && (
+          <Button
+            type="button"
+            disabled={loading || !canApplyItemForm}
+            onClick={applyItemForm}
+          >
+            {itemEditSession.mode === "edit" ? "Save Item" : "Add Item"}
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          disabled={loading}
+          onClick={closeItemForm}
+        >
+          Cancel
+        </Button>
+      </div>
+    </div>
+  ) : null;
+
+  function itemFormBelongsToSection(section: DraftItemSection) {
+    if (!itemEditSession) return false;
+    const activeItem = draft?.items[itemEditSession.index];
+    if (activeItem?.parent_branch_item_client_id) return false;
+
+    const sessionIndex = itemEditSession.index;
+    if (section.items.length === 0) return sessionIndex === section.startIndex;
+    if (sessionIndex >= section.startIndex && sessionIndex < section.appendIndex) {
+      return true;
+    }
+
+    const lastSectionItem = section.items[section.items.length - 1];
+    return (
+      (!lastSectionItem || !isStructuralItem(lastSectionItem)) &&
+      sessionIndex === section.appendIndex
+    );
+  }
 
   function leavePage() {
     if (
@@ -503,150 +774,311 @@ const AssociationDDQPackContent = () => {
             ))}
             <option value="checkpoint">Checkpoints</option>
           </select>
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" type="button" disabled={itemActionsDisabled}>
-                <Plus className="size-4" />
-                Add item
-                <ChevronDown className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {addItemOptions.map((option) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onSelect={() => openCreateForm(draft?.items.length ?? 0, option.value)}
-                >
-                  {option.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        ) : null}
       </div>
 
-      {itemEditSession && (
-        <div className="grid gap-3 border bg-muted/20 p-4">
-          <h2 className="text-base font-medium">{formTitle}</h2>
-          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_2fr]">
-            <select
-              aria-label="DDQ pack item type"
-              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-              value={form.kind === "checkpoint" ? "checkpoint" : form.task_type}
-              disabled={loading || itemEditSession.mode === "edit" || isViewingItem}
-              onChange={(event) => {
-                const itemType = parseAddItemType(event.target.value);
-                if (itemType) setForm(nextFormForItemType(itemType, form));
-              }}
-            >
-              {taskTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {form.kind === "ddq-task" && form.task_type === "document-upload" ? (
-              <select
-                aria-label="Document type"
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                value={form.document_type}
-                disabled={loading || isViewingItem}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    document_type: event.target.value as DDQDocumentType,
-                  })
-                }
-              >
-                {DDQ_DOCUMENT_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            ) : form.kind === "ddq-task" && form.task_type === "form-completion" ? (
-              <select
-                aria-label="Form template"
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                value={form.form_template_id}
-                disabled={loading || formTemplatesLoading || isViewingItem}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    form_template_id: event.target.value
-                      ? Number(event.target.value)
-                      : "",
-                  })
-                }
-              >
-                <option value="">
-                  {formDocumentTitle(itemBeingEdited?.config)
-                    ? `Keep copied form: ${formDocumentTitle(itemBeingEdited?.config)}`
-                    : "Select form template"}
-                </option>
-                {formTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.short_name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div />
-            )}
-            <Input
-              value={form.title}
-              placeholder="Title"
-              disabled={loading || isViewingItem}
-              onChange={(event) => setForm({ ...form, title: event.target.value })}
-            />
-          </div>
-          {form.kind === "ddq-task" && form.task_type === "form-completion" && (
-            <div className="grid gap-1 text-sm text-muted-foreground">
-              <p>
-                Select a form template. The template definition will be copied into
-                this DDQ pack item, so later template edits or deletion will not
-                affect this task.
-              </p>
-              {formTemplatesLoading && <p>Loading form templates...</p>}
-              {formTemplatesError && (
-                <p className="text-destructive">{formTemplatesError}</p>
+      <div className={readOnly ? "grid gap-6" : "grid gap-6 pl-5"}>
+        {itemSections.map((section) => {
+          const lastSectionItem = section.items[section.items.length - 1];
+          const sectionEndsWithStructuralItem =
+            Boolean(lastSectionItem && isStructuralItem(lastSectionItem));
+          const sectionAddDisabled = itemActionsDisabled || sectionEndsWithStructuralItem;
+
+          return (
+            <div className="grid gap-2" key={section.id}>
+              {itemFormBelongsToSection(section) && itemFormPanel}
+              {!readOnly && (
+                <div className="flex justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" type="button" disabled={sectionAddDisabled}>
+                        <Plus className="size-4" />
+                        Add item
+                        <ChevronDown className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {addItemOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onSelect={() =>
+                            openCreateForm(
+                              insertIndexForSiblingAppend(draft?.items ?? [], null, null),
+                              option.value,
+                              { branchClientId: null, optionId: null },
+                            )
+                          }
+                        >
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               )}
-              {!formTemplatesLoading &&
-                !formTemplatesError &&
-                formTemplates.length === 0 &&
-                !formDocumentTitle(itemBeingEdited?.config) && (
-                  <p className="text-destructive">
-                    Create a form template before adding a form completion task.
-                  </p>
-                )}
+              <div className="relative w-full overflow-visible [&_[data-slot=table-container]]:!overflow-visible">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Kind</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Task Type</TableHead>
+                      <TableHead>Details</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {!readOnly && (
+                      <InsertionRow
+                        disabled={itemActionsDisabled}
+                        onAdd={() =>
+                          openCreateForm(
+                            insertIndexForSiblingAppend(draft?.items ?? [], null, null),
+                            "document-upload",
+                            { branchClientId: null, optionId: null },
+                          )
+                        }
+                      />
+                    )}
+                    {section.items.map((item) => {
+                      const itemIndex = getDraftItemIndex(draft, item);
+
+                      return (
+                        <Fragment key={item.clientId}>
+                          <TableRow className={item.kind === "branch" ? "border-b-0" : undefined}>
+                            <TableCell>{itemIndex + 1}</TableCell>
+                            <TableCell>{displayKind(item)}</TableCell>
+                            <TableCell>{item.title}</TableCell>
+                            <TableCell>{displayTaskType(item)}</TableCell>
+                            <TableCell>{displayDetails(item, formTemplates)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  type="button"
+                                  title="View item"
+                                  disabled={viewItemActionDisabled}
+                                  onClick={() => openViewForm(item, itemIndex)}
+                                >
+                                  <FileText className="size-4" />
+                                </Button>
+                                {!readOnly && (
+                                  <>
+                                    <Button
+                                      size="icon-sm"
+                                      variant="ghost"
+                                      type="button"
+                                      title="Edit item"
+                                      disabled={itemActionsDisabled}
+                                      onClick={() => openEditForm(item, itemIndex)}
+                                    >
+                                      <Edit className="size-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon-sm"
+                                      variant="ghost"
+                                      type="button"
+                                      title="Delete item"
+                                      disabled={itemActionsDisabled}
+                                      onClick={() => removeItem(item)}
+                                    >
+                                      <Trash2 className="size-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          {item.kind === "branch" && (
+                            <TableRow className="border-b-0">
+                              <TableCell className="px-0 pb-0 pt-6" colSpan={6}>
+                                <BranchOptionTables
+                                  draft={draft}
+                                  branch={item}
+                                  readOnly={readOnly}
+                                  loading={loading}
+                                  formPanel={itemFormPanel}
+                                  itemActionsDisabled={itemActionsDisabled}
+                                  viewItemActionDisabled={viewItemActionDisabled}
+                                  activeFormSession={itemEditSession}
+                                  pendingParent={pendingParent}
+                                  canEditDDQPacks={canEditDDQPacks}
+                                  formTemplates={formTemplates}
+                                  openCreateForm={openCreateForm}
+                                  openEditForm={openEditForm}
+                                  openViewForm={openViewForm}
+                                  removeItem={removeItem}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          )}
+                          {!readOnly && !isStructuralItem(item) && (
+                            <InsertionRow
+                              disabled={itemActionsDisabled}
+                              onAdd={() =>
+                                openCreateForm(
+                                  insertIndexAfterItemSubtree(draft?.items ?? [], item),
+                                  "document-upload",
+                                  {
+                                    branchClientId: item.parent_branch_item_client_id,
+                                    optionId: item.parent_branch_option_id ?? null,
+                                  },
+                                )
+                              }
+                            />
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                    {section.items.length === 0 && (
+                      <TableRow>
+                        <TableCell
+                          className="py-3 text-muted-foreground"
+                          colSpan={6}
+                        >
+                          {itemTotal === 0
+                            ? "No DDQ Pack Items."
+                            : "No DDQ Pack Items match this filter."}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <Status message={message} error={error} />
+    </Page>
+  );
+};
+
+type BranchOptionTablesProps = {
+  draft: PackDraftState | null;
+  branch: DraftPackItem;
+  readOnly: boolean;
+  loading: boolean;
+  formPanel: ReactNode;
+  itemActionsDisabled: boolean;
+  viewItemActionDisabled: boolean;
+  activeFormSession: ItemEditSession | null;
+  pendingParent: BranchParent;
+  canEditDDQPacks: boolean;
+  formTemplates: FormTemplateSummary[];
+  openCreateForm: (
+    index: number,
+    itemType?: AddItemType,
+    parent?: BranchParent,
+  ) => void;
+  openEditForm: (item: DraftPackItem, index: number) => void;
+  openViewForm: (item: DraftPackItem, index: number) => void;
+  removeItem: (item: DraftPackItem) => void;
+};
+
+function BranchOptionTables({
+  draft,
+  branch,
+  readOnly,
+  loading,
+  formPanel,
+  itemActionsDisabled,
+  viewItemActionDisabled,
+  activeFormSession,
+  pendingParent,
+  canEditDDQPacks,
+  formTemplates,
+  openCreateForm,
+  openEditForm,
+  openViewForm,
+  removeItem,
+}: BranchOptionTablesProps) {
+  const options = branchOptions(branch.config);
+  const [activeOptionId, setActiveOptionId] = useState(options[0]?.id ?? "");
+  const selectedOption = options.find((option) => option.id === activeOptionId) ?? options[0];
+  if (!draft || !selectedOption) return null;
+
+  const parent: BranchParent = {
+    branchClientId: branch.clientId,
+    optionId: selectedOption.id,
+  };
+  const childItems = getSiblingItems(draft.items, branch.clientId, selectedOption.id);
+  const sections = splitItemsIntoSections(childItems);
+  const activeFormItem =
+    activeFormSession ? draft.items[activeFormSession.index] : null;
+  const formBelongsToActiveOption = Boolean(
+    activeFormSession?.mode === "add"
+      ? pendingParent.branchClientId === branch.clientId &&
+          pendingParent.optionId === selectedOption.id
+      : activeFormItem &&
+          activeFormItem.parent_branch_item_client_id === branch.clientId &&
+          activeFormItem.parent_branch_option_id === selectedOption.id,
+  );
+
+  return (
+    <div className="grid gap-5">
+      <div className="flex flex-wrap gap-1 border-b">
+        {options.map((option) => (
+          <Button
+            key={option.id}
+            type="button"
+            size="sm"
+            variant={option.id === selectedOption.id ? "secondary" : "ghost"}
+            onClick={() => setActiveOptionId(option.id)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+      {formBelongsToActiveOption && formPanel}
+      {sections.map((section) => (
+        <div className="grid gap-2" key={`${branch.clientId}-${selectedOption.id}-${section.id}`}>
+          {!readOnly && (
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    type="button"
+                    disabled={
+                      itemActionsDisabled ||
+                      Boolean(
+                        section.items[section.items.length - 1] &&
+                          isStructuralItem(section.items[section.items.length - 1]),
+                      )
+                    }
+                  >
+                    <Plus className="size-4" />
+                    Add item
+                    <ChevronDown className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {addItemOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onSelect={() =>
+                        openCreateForm(
+                          insertIndexForSiblingAppend(
+                            draft.items,
+                            branch.clientId,
+                            selectedOption.id,
+                          ),
+                          option.value,
+                          parent,
+                        )
+                      }
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
-          <div className="flex flex-wrap gap-2">
-            {!isViewingItem && (
-              <Button
-                type="button"
-                disabled={loading || !canApplyItemForm}
-                onClick={applyItemForm}
-              >
-                {itemEditSession.mode === "edit" ? "Save Item" : "Add Item"}
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loading}
-              onClick={closeItemForm}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className={readOnly ? "" : "pl-5"}>
-        <div className="relative w-full overflow-visible">
-          <Table>
+          <table className="w-full caption-bottom text-sm">
             <TableHeader>
               <TableRow>
                 <TableHead>Position</TableHead>
@@ -661,16 +1093,22 @@ const AssociationDDQPackContent = () => {
               {!readOnly && (
                 <InsertionRow
                   disabled={itemActionsDisabled}
-                  onAdd={() => openCreateForm(0)}
+                  onAdd={() =>
+                    openCreateForm(
+                      insertIndexForSiblingAppend(draft.items, branch.clientId, selectedOption.id),
+                      "document-upload",
+                      parent,
+                    )
+                  }
                 />
               )}
-              {visibleItems.map((item) => {
+              {section.items.map((item) => {
                 const itemIndex = getDraftItemIndex(draft, item);
 
                 return (
                   <Fragment key={item.clientId}>
-                    <TableRow>
-                      <TableCell>{itemIndex + 1}</TableCell>
+                    <TableRow className={item.kind === "branch" ? "border-b-0" : undefined}>
+                      <TableCell>{section.items.indexOf(item) + 1}</TableCell>
                       <TableCell>{displayKind(item)}</TableCell>
                       <TableCell>{item.title}</TableCell>
                       <TableCell>{displayTaskType(item)}</TableCell>
@@ -687,7 +1125,7 @@ const AssociationDDQPackContent = () => {
                           >
                             <FileText className="size-4" />
                           </Button>
-                          {!readOnly && (
+                          {!readOnly && canEditDDQPacks && (
                             <>
                               <Button
                                 size="icon-sm"
@@ -714,37 +1152,62 @@ const AssociationDDQPackContent = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                    {!readOnly && (
+                    {item.kind === "branch" && (
+                      <TableRow className="border-b-0">
+                        <TableCell className="px-0 pb-0 pt-6" colSpan={6}>
+                          <BranchOptionTables
+                            draft={draft}
+                            branch={item}
+                            readOnly={readOnly}
+                            loading={loading}
+                            formPanel={formPanel}
+                            itemActionsDisabled={itemActionsDisabled}
+                            viewItemActionDisabled={viewItemActionDisabled}
+                            activeFormSession={activeFormSession}
+                            pendingParent={pendingParent}
+                            canEditDDQPacks={canEditDDQPacks}
+                            formTemplates={formTemplates}
+                            openCreateForm={openCreateForm}
+                            openEditForm={openEditForm}
+                            openViewForm={openViewForm}
+                            removeItem={removeItem}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {!readOnly && !isStructuralItem(item) && (
                       <InsertionRow
                         disabled={itemActionsDisabled}
-                        onAdd={() => openCreateForm(itemIndex + 1)}
+                        onAdd={() =>
+                          openCreateForm(
+                            insertIndexAfterItemSubtree(draft.items, item),
+                            "document-upload",
+                            parent,
+                          )
+                        }
                       />
                     )}
                   </Fragment>
                 );
               })}
-            {visibleItems.length === 0 && (
-              <TableRow>
-                <TableCell
-                  className="py-3 text-muted-foreground"
-                  colSpan={6}
-                >
-                  {itemTotal === 0
-                    ? "No DDQ Pack Items."
-                    : "No DDQ Pack Items match this filter."}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              {section.items.length === 0 && (
+                <TableRow>
+                  <TableCell className="py-3 text-muted-foreground" colSpan={6}>
+                    No DDQ Pack Items.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </table>
         </div>
-      </div>
-      <Status message={message} error={error} />
-    </Page>
+      ))}
+    </div>
   );
-};
+}
 
 function toDraftState(pack: DDQPack, items: DDQPackItem[]): PackDraftState {
+  const clientIdsByItemId = new Map(items.map((item) => [item.id, `persisted-${item.id}`]));
+
   return {
     pack: {
       name: pack.name,
@@ -758,6 +1221,11 @@ function toDraftState(pack: DDQPack, items: DDQPackItem[]): PackDraftState {
       task_type: item.task_type,
       title: item.title,
       config: { ...item.config },
+      parent_branch_item_id: item.parent_branch_item_id,
+      parent_branch_option_id: item.parent_branch_option_id,
+      parent_branch_item_client_id: item.parent_branch_item_id
+        ? clientIdsByItemId.get(item.parent_branch_item_id) ?? null
+        : null,
     })),
   };
 }
@@ -768,6 +1236,7 @@ function cloneDraftState(state: PackDraftState): PackDraftState {
     items: state.items.map((item) => ({
       ...item,
       config: { ...item.config },
+      parent_branch_item_client_id: item.parent_branch_item_client_id ?? null,
     })),
   };
 }
@@ -778,8 +1247,10 @@ function draftToPayload(draft: PackDraftState): SaveDDQPackDraftPayload {
       ...draft.pack,
       name: draft.pack.name.trim(),
     },
-    items: draft.items.map(({ clientId: _clientId, id: _id, ...item }) => ({
+    items: draft.items.map(({ clientId, id: _id, ...item }) => ({
       ...item,
+      client_id: clientId,
+      parent_branch_item_client_id: item.parent_branch_item_client_id ?? null,
       title: item.title.trim(),
       config: { ...item.config },
     })),
@@ -792,6 +1263,18 @@ function defaultFormForItemType(itemType: AddItemType): ItemFormState {
       ...defaultItemForm,
       kind: "checkpoint",
       title: "Complete everything above to continue",
+    };
+  }
+
+  if (itemType === "branch") {
+    return {
+      ...defaultItemForm,
+      kind: "branch",
+      title: "Choose a path",
+      branch_options: [
+        { id: createBranchOptionId(), label: "Option 1" },
+        { id: createBranchOptionId(), label: "Option 2" },
+      ],
     };
   }
 
@@ -810,7 +1293,7 @@ function nextFormForItemType(
 ): ItemFormState {
   const next = defaultFormForItemType(itemType);
 
-  if (itemType === "checkpoint") {
+  if (itemType === "checkpoint" || itemType === "branch") {
     return {
       ...next,
       title: current.title || next.title,
@@ -826,15 +1309,21 @@ function nextFormForItemType(
 function formToDraftItem(
   form: ItemFormState,
   existing: DraftPackItem | null,
+  parent: BranchParent,
   createClientId: () => string,
 ): DraftPackItem {
+  const clientId = existing?.clientId ?? createClientId();
+
   return {
-    clientId: existing?.clientId ?? createClientId(),
+    clientId,
     ...(existing?.id === undefined ? {} : { id: existing.id }),
     kind: form.kind,
-    task_type: form.kind === "checkpoint" ? null : form.task_type,
+    task_type: form.kind === "ddq-task" ? form.task_type : null,
     title: form.title.trim(),
     config: formToConfig(form, existing),
+    parent_branch_item_id: existing?.parent_branch_item_id ?? null,
+    parent_branch_option_id: parent.optionId,
+    parent_branch_item_client_id: parent.branchClientId,
   };
 }
 
@@ -845,11 +1334,20 @@ function itemToForm(item: DraftPackItem): ItemFormState {
     title: item.title,
     document_type: documentTypeFromConfig(item.config),
     form_template_id: formTemplateIdFromConfig(item.config),
+    branch_options: branchOptions(item.config),
   };
 }
 
 function formToConfig(form: ItemFormState, existing: DraftPackItem | null) {
   if (form.kind === "checkpoint") return {};
+  if (form.kind === "branch") {
+    return {
+      options: form.branch_options.map((option) => ({
+        id: option.id,
+        label: option.label.trim(),
+      })),
+    };
+  }
   if (form.task_type === "document-upload") {
     return { document_type: form.document_type };
   }
@@ -873,10 +1371,22 @@ function documentTypeFromConfig(config: Record<string, unknown>): DDQDocumentTyp
 }
 
 function displayKind(item: DraftPackItem) {
+  if (item.kind === "branch") return "Branch";
   return item.kind === "checkpoint" ? "Checkpoint" : "Task";
 }
 
 function displayTaskType(item: DraftPackItem) {
+  if (item.kind === "branch") {
+    return (
+      <Badge
+        variant="outline"
+        className="border-emerald-200 bg-emerald-100 text-emerald-800"
+      >
+        Branch
+      </Badge>
+    );
+  }
+
   if (item.kind === "checkpoint") {
     return (
       <Badge
@@ -907,7 +1417,55 @@ function matchesTaskTypeFilter(item: DraftPackItem, filter: TaskTypeFilter) {
   return item.kind === "ddq-task" && item.task_type === filter;
 }
 
+function splitItemsIntoSections(items: DraftPackItem[]): DraftItemSection[] {
+  const sections: DraftItemSection[] = [];
+  let sectionItems: DraftPackItem[] = [];
+  let sectionInsertIndex = 0;
+
+  items.forEach((item, index) => {
+    if (sectionItems.length === 0) {
+      sectionInsertIndex = index;
+    }
+
+    sectionItems.push(item);
+
+    if (isStructuralItem(item)) {
+      sections.push({
+        id: sectionItems[0]?.clientId ?? `section-${sections.length}`,
+        items: sectionItems,
+        startIndex: sectionInsertIndex,
+        appendIndex: index + 1,
+      });
+      sectionItems = [];
+      sectionInsertIndex = index + 1;
+    }
+  });
+
+  const endsWithCheckpoint = items[items.length - 1]?.kind === "checkpoint";
+  if (sectionItems.length > 0 || sections.length === 0 || endsWithCheckpoint) {
+    sections.push({
+      id: sectionItems[0]?.clientId ?? `section-${sections.length}`,
+      items: sectionItems,
+      startIndex: sectionInsertIndex,
+      appendIndex:
+        sectionItems.length > 0
+          ? sectionInsertIndex + sectionItems.length
+          : sectionInsertIndex,
+    });
+  }
+
+  return sections;
+}
+
+function isStructuralItem(item: DraftPackItem) {
+  return item.kind === "checkpoint" || item.kind === "branch";
+}
+
 function displayDetails(item: DraftPackItem, formTemplates: FormTemplateSummary[]) {
+  if (item.kind === "branch") {
+    const options = branchOptions(item.config);
+    return `${options.length} ${options.length === 1 ? "option" : "options"}`;
+  }
   if (item.kind === "checkpoint") return "Complete everything above to continue";
   if (item.task_type === "document-upload") {
     return displayDocumentType(documentTypeFromConfig(item.config));
@@ -920,6 +1478,104 @@ function displayDetails(item: DraftPackItem, formTemplates: FormTemplateSummary[
     );
   }
   return "-";
+}
+
+function branchOptions(config: Record<string, unknown> | undefined): DDQBranchOption[] {
+  const options = config?.options;
+  if (!Array.isArray(options)) return [];
+
+  return options.flatMap((option) => {
+    if (!option || typeof option !== "object" || Array.isArray(option)) return [];
+    const raw = option as Record<string, unknown>;
+    if (typeof raw.id !== "string" || typeof raw.label !== "string") return [];
+    return [{ id: raw.id, label: raw.label }];
+  });
+}
+
+function validateBranchOptions(options: DDQBranchOption[]) {
+  if (options.length < 2) return "Add at least 2 options.";
+  if (options.length > 8) return "Use 8 options or fewer.";
+
+  const labels = new Set<string>();
+  for (const option of options) {
+    const label = option.label.trim();
+    if (!label) return "Option labels are required.";
+    const key = label.toLowerCase();
+    if (labels.has(key)) return "Option labels must be unique.";
+    labels.add(key);
+  }
+
+  return "";
+}
+
+function createBranchOptionId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `option-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getSiblingItems(
+  items: DraftPackItem[],
+  parentBranchClientId: string | null,
+  parentBranchOptionId: string | null,
+) {
+  return items.filter(
+    (item) =>
+      item.parent_branch_item_client_id === parentBranchClientId &&
+      (item.parent_branch_option_id ?? null) === parentBranchOptionId,
+  );
+}
+
+function descendantClientIds(items: DraftPackItem[], branchClientId: string) {
+  const ids = new Set<string>();
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+    for (const item of items) {
+      if (
+        (item.parent_branch_item_client_id === branchClientId ||
+          (item.parent_branch_item_client_id &&
+            ids.has(item.parent_branch_item_client_id))) &&
+        !ids.has(item.clientId)
+      ) {
+        ids.add(item.clientId);
+        changed = true;
+      }
+    }
+  }
+
+  return ids;
+}
+
+function insertIndexForSiblingAppend(
+  items: DraftPackItem[],
+  parentBranchClientId: string | null,
+  parentBranchOptionId: string | null,
+) {
+  const siblings = getSiblingItems(items, parentBranchClientId, parentBranchOptionId);
+  const lastSibling = siblings[siblings.length - 1];
+  if (lastSibling) return insertIndexAfterItemSubtree(items, lastSibling);
+
+  if (!parentBranchClientId) return items.length;
+
+  const parentIndex = items.findIndex((item) => item.clientId === parentBranchClientId);
+  if (parentIndex < 0) return items.length;
+
+  return parentIndex + 1;
+}
+
+function insertIndexAfterItemSubtree(items: DraftPackItem[], item: DraftPackItem) {
+  const descendants = descendantClientIds(items, item.clientId);
+  let lastIndex = items.findIndex((candidate) => candidate.clientId === item.clientId);
+
+  items.forEach((candidate, index) => {
+    if (descendants.has(candidate.clientId)) lastIndex = Math.max(lastIndex, index);
+  });
+
+  return lastIndex + 1;
 }
 
 function hasFormCompletionConfig(config: Record<string, unknown>) {

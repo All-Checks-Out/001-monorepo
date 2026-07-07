@@ -20,6 +20,8 @@ import { ProviderDDQChecklistTaskPage } from "./pages/ProviderDDQChecklistTaskPa
 import ProviderDDQPacks from "./pages/ProviderDDQPacks";
 import ProviderDirectory from "./pages/ProviderDirectory";
 import ProviderSetupRequests from "./pages/ProviderSetupRequests";
+import ProviderSubjectDetail from "./pages/ProviderSubjectDetail";
+import ProviderSubjects from "./pages/ProviderSubjects";
 import UsersPage from "./pages/UsersPage";
 
 type GuardOptions = {
@@ -152,6 +154,18 @@ export const CoreRouteContent = ({ hostContext }: RemoteAppProps) => {
       <Route
         path="provider/ddq-packs/:packId/checklist/tasks/:taskId"
         element={guardCorporation(["PROVIDER"], <ProviderDDQChecklistTaskPage />)}
+      />
+      <Route
+        path="provider/subjects"
+        element={guard("provider-subjects:read", <ProviderSubjects />, {
+          corporationTypes: ["PROVIDER"],
+        })}
+      />
+      <Route
+        path="provider/subjects/:subjectId"
+        element={guard("provider-subjects:read", <ProviderSubjectDetail />, {
+          corporationTypes: ["PROVIDER"],
+        })}
       />
       <Route
         path="provider/users"

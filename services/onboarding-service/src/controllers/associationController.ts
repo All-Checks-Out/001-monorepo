@@ -46,7 +46,11 @@ const ddqTaskTypeSchema = z.enum([
 
 const itemBodySchema = z.object({
   insert_after_item_id: z.number().int().positive().nullable().optional(),
-  kind: z.enum(["ddq-task", "checkpoint"]),
+  client_id: z.string().trim().min(1).optional(),
+  parent_branch_item_id: z.number().int().positive().nullable().optional(),
+  parent_branch_item_client_id: z.string().trim().min(1).nullable().optional(),
+  parent_branch_option_id: z.string().trim().min(1).nullable().optional(),
+  kind: z.enum(["ddq-task", "checkpoint", "branch"]),
   task_type: ddqTaskTypeSchema.nullable().optional(),
   title: z.string().trim().min(1, "Title is required."),
   config: z.record(z.string(), z.unknown()).default({}),
@@ -295,10 +299,14 @@ export async function saveAssociationDDQPackDraftController(req: Request, res: R
         validTo: body.pack.valid_to,
       },
       items: body.items.map((item) => ({
+        clientId: item.client_id,
         kind: item.kind,
         taskType: item.task_type ?? null,
         title: item.title,
         config: item.config,
+        parentBranchItemId: item.parent_branch_item_id ?? null,
+        parentBranchOptionId: item.parent_branch_option_id ?? null,
+        parentBranchItemClientId: item.parent_branch_item_client_id ?? null,
       })),
     });
     res.json(result);
@@ -371,10 +379,14 @@ export async function createAssociationDDQPackItemController(req: Request, res: 
       packId,
       body.insert_after_item_id ?? null,
       {
+        clientId: body.client_id,
         kind: body.kind,
         taskType: body.task_type ?? null,
         title: body.title,
         config: body.config,
+        parentBranchItemId: body.parent_branch_item_id ?? null,
+        parentBranchOptionId: body.parent_branch_option_id ?? null,
+        parentBranchItemClientId: body.parent_branch_item_client_id ?? null,
       },
     );
     res.status(201).json(result);
@@ -398,10 +410,14 @@ export async function updateAssociationDDQPackItemController(req: Request, res: 
 
   try {
     const result = await updateAssociationDDQPackItem(context, packId, itemId, {
+      clientId: body.client_id,
       kind: body.kind,
       taskType: body.task_type ?? null,
       title: body.title,
       config: body.config,
+      parentBranchItemId: body.parent_branch_item_id ?? null,
+      parentBranchOptionId: body.parent_branch_option_id ?? null,
+      parentBranchItemClientId: body.parent_branch_item_client_id ?? null,
     });
     res.json(result);
   } catch (error) {

@@ -32,6 +32,11 @@ const CORE_ROUTES = {
     packId: number | string,
     taskId: number | string,
   ) => `/provider/ddq-packs/${packId}/checklist/tasks/${taskId}`,
+  providerSubjects: "/provider/subjects",
+  providerSubjectNew: "/provider/subjects/new",
+  providerSubjectRoute: "/provider/subjects/:subjectId",
+  providerSubject: (subjectId: number | string) =>
+    `/provider/subjects/${subjectId}`,
   providerUsers: "/provider/users",
   providerSetupRequests: "/provider/setup-requests",
   providerAccessRequests: "/provider/access-requests",

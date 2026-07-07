@@ -168,7 +168,14 @@ export type FormDefinition = {
 
 export type FormValues = Record<string, FormValue>;
 
-export type FormValue = string | boolean | null;
+export type SubjectScalarValue = string | number | boolean | null;
+export type SubjectComplexRowValue = Record<string, SubjectScalarValue>;
+export type SubjectPropertyValue =
+  | SubjectScalarValue
+  | SubjectComplexRowValue[];
+export type SubjectEntryValue = Record<string, SubjectPropertyValue>;
+
+export type FormValue = SubjectScalarValue | SubjectEntryValue[];
 ```
 
 `values` is keyed by `FormItem.id`.
@@ -238,7 +245,8 @@ export type FormItemType =
   | "phone"
   | "select"
   | "radio"
-  | "boolean";
+  | "boolean"
+  | "subject";
 
 export type FormItemBase = {
   id: string;
@@ -255,17 +263,55 @@ export type FormItem =
   | (FormItemBase & { type: "phone"; placeholder?: string })
   | (FormItemBase & { type: "select"; options: string[] })
   | (FormItemBase & { type: "radio"; options: string[] })
-  | (FormItemBase & { type: "boolean" });
+  | (FormItemBase & { type: "boolean" })
+  | (FormItemBase & {
+      type: "subject";
+      subjectTypeKey: string;
+      repeatable: boolean;
+      selectedProperties: SubjectPropertySelection[];
+    });
+
+export type SubjectSimplePropertySelection = {
+  key: string;
+};
+
+export type SubjectComplexPropertySelection = {
+  key: string;
+  columns: SubjectSimplePropertySelection[];
+};
+
+export type SubjectPropertySelection =
+  | SubjectSimplePropertySelection
+  | SubjectComplexPropertySelection;
 ```
 
 Value rules:
 
 - `text`, `textarea`, `phone`, `select`, `radio`, and `date` values are strings.
+- `number` and `currency` Subject property values are numbers.
 - `boolean` values are booleans.
 - Missing keys, empty strings, and `null` are incomplete for required fields.
 - Optional fields may be missing, empty, or `null`.
 - `select` and `radio` values must be one of the configured `options`.
 - `date` values must use `YYYY-MM-DD`.
+- `subject` values are arrays of Subject entries, even when the UI currently
+  asks for only one entry.
+- Subject entries store selected simple properties as scalar values.
+- Selected complex Subject properties store a fixed-depth array of table rows.
+  Each row contains scalar values for the selected columns only.
+
+Subject item rules:
+
+- A Subject form item uses `type: "subject"`.
+- It stores `selectedProperties`, not legacy attribute keys.
+- A selected simple property is `{ key }`.
+- A selected complex table property is `{ key, columns: [{ key }] }`.
+- Complex Subject properties are deliberately non-recursive. A complex property
+  can contain simple child properties only.
+- The form designer and runtime should derive labels, column names, and controls
+  from shared Subject metadata.
+- Logic must operate on metadata shape, especially `kind: "complex"` and
+  `display: "table"`, rather than hard-coding specific Person table names.
 
 ## Compatibility And Versioning
 

@@ -7,7 +7,9 @@ import { Input } from "@frontend/shadcn/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@frontend/shadcn/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 
-const FORM_ITEM_TYPES: { type: FormItemType; label: string }[] = [
+type DataFormItemType = Exclude<FormItemType, "subject">;
+
+const FORM_ITEM_TYPES: { type: DataFormItemType; label: string }[] = [
   { type: "text", label: "Text" },
   { type: "textarea", label: "Long text" },
   { type: "date", label: "Date" },

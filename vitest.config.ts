@@ -14,6 +14,13 @@ export default defineConfig({
         },
       },
       {
+        test: {
+          name: "@shared/subjects",
+          root: projectPath("packages/shared/subjects"),
+          include: ["src/**/*.test.ts"],
+        },
+      },
+      {
         extends: projectPath("apps/core/vite.config.ts"),
         test: {
           name: "@apps/core",

@@ -1,6 +1,7 @@
 import type { Client } from "pg";
 import type {
   DDQChecklistStatus,
+  ProviderDDQChecklistBranchSelectionRow,
   DDQPackRow,
   ProviderDDQChecklistRow,
   ProviderDDQChecklistTaskWithItemRow,
@@ -17,6 +18,7 @@ type ChecklistWithPackRows = {
   pack: DDQPackRow | null;
   checklist: ProviderDDQChecklistRow | null;
   tasks: ProviderDDQChecklistTaskWithItemRow[];
+  branchSelections: ProviderDDQChecklistBranchSelectionRow[];
 };
 
 type ChecklistPackJoinRow = DDQPackRow & {
@@ -47,9 +49,21 @@ const checklistTaskSelect = `
          dpi.kind,
          dpi.task_type,
          dpi.title,
-         dpi.config
+         dpi.config,
+         dpi.parent_branch_item_id,
+         dpi.parent_branch_option_id
     FROM provider_ddq_checklist_task pct
     JOIN ddq_pack_item dpi ON dpi.id = pct.ddq_pack_item_id
+`;
+
+const branchSelectionSelect = `
+  SELECT id,
+         checklist_id,
+         branch_pack_item_id,
+         selected_option_id,
+         created_at::text AS created_at,
+         updated_at::text AS updated_at
+    FROM provider_ddq_checklist_branch_selection
 `;
 
 export async function getProviderDDQPackPoolItem(
@@ -113,8 +127,27 @@ export async function createMissingProviderDDQChecklistTasks(
      SELECT $1, dpi.id
        FROM ddq_pack_item dpi
       WHERE dpi.pack_id = $2
+        AND dpi.parent_branch_item_id IS NULL
+        AND dpi.parent_branch_option_id IS NULL
      ON CONFLICT (checklist_id, ddq_pack_item_id) DO NOTHING`,
     [checklistId, ddqPackId],
+  );
+}
+
+export async function createMissingProviderDDQChecklistTasksForBranchOption(
+  client: Client,
+  checklistId: number,
+  branchPackItemId: number,
+  optionId: string,
+) {
+  await client.query(
+    `INSERT INTO provider_ddq_checklist_task (checklist_id, ddq_pack_item_id)
+     SELECT $1, dpi.id
+       FROM ddq_pack_item dpi
+      WHERE dpi.parent_branch_item_id = $2
+        AND dpi.parent_branch_option_id = $3
+      ON CONFLICT (checklist_id, ddq_pack_item_id) DO NOTHING`,
+    [checklistId, branchPackItemId, optionId],
   );
 }
 
@@ -146,13 +179,23 @@ export async function readProviderDDQChecklist(
   const row = packResult.rows[0];
 
   if (!row) {
-    return { pack: null, checklist: null, tasks: [] };
+    return { pack: null, checklist: null, tasks: [], branchSelections: [] };
   }
 
   const tasksResult = await client.query<ProviderDDQChecklistTaskWithItemRow>(
     `${checklistTaskSelect}
       WHERE pct.checklist_id = $1
-      ORDER BY dpi.position`,
+      ORDER BY COALESCE(dpi.parent_branch_item_id, 0),
+               COALESCE(dpi.parent_branch_option_id, ''),
+               dpi.position,
+               dpi.id`,
+    [row.checklist_id],
+  );
+
+  const selectionsResult = await client.query<ProviderDDQChecklistBranchSelectionRow>(
+    `${branchSelectionSelect}
+      WHERE checklist_id = $1
+      ORDER BY branch_pack_item_id`,
     [row.checklist_id],
   );
 
@@ -174,7 +217,114 @@ export async function readProviderDDQChecklist(
       updated_at: row.checklist_updated_at,
     },
     tasks: tasksResult.rows,
+    branchSelections: selectionsResult.rows,
   };
+}
+
+export async function getProviderDDQChecklistBranchTask(
+  client: Client,
+  providerCorporationId: number,
+  ddqPackId: number,
+  branchTaskId: number,
+) {
+  const result = await client.query<ProviderDDQChecklistTaskWithItemRow>(
+    `${checklistTaskSelect}
+      JOIN provider_ddq_checklist pc ON pc.id = pct.checklist_id
+      JOIN provider_ddq_pack pdp ON pdp.id = pc.provider_ddq_pack_id
+      WHERE pdp.provider_corporation_id = $1
+        AND pdp.ddq_pack_id = $2
+        AND pct.id = $3
+        AND dpi.kind = 'branch'`,
+    [providerCorporationId, ddqPackId, branchTaskId],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function upsertProviderDDQChecklistBranchSelection(
+  client: Client,
+  checklistId: number,
+  branchPackItemId: number,
+  selectedOptionId: string,
+) {
+  const result = await client.query<ProviderDDQChecklistBranchSelectionRow>(
+    `INSERT INTO provider_ddq_checklist_branch_selection (
+       checklist_id,
+       branch_pack_item_id,
+       selected_option_id
+     )
+     VALUES ($1, $2, $3)
+     ON CONFLICT (checklist_id, branch_pack_item_id) DO UPDATE
+       SET selected_option_id = EXCLUDED.selected_option_id,
+           updated_at = NOW()
+     RETURNING id,
+               checklist_id,
+               branch_pack_item_id,
+               selected_option_id,
+               created_at::text AS created_at,
+               updated_at::text AS updated_at`,
+    [checklistId, branchPackItemId, selectedOptionId],
+  );
+
+  return result.rows[0];
+}
+
+export async function getProviderDDQChecklistBranchSelection(
+  client: Client,
+  checklistId: number,
+  branchPackItemId: number,
+) {
+  const result = await client.query<ProviderDDQChecklistBranchSelectionRow>(
+    `${branchSelectionSelect}
+      WHERE checklist_id = $1
+        AND branch_pack_item_id = $2`,
+    [checklistId, branchPackItemId],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function deleteProviderDDQChecklistWorkForBranchOption(
+  client: Client,
+  checklistId: number,
+  branchPackItemId: number,
+  optionId: string,
+) {
+  await client.query(
+    `WITH RECURSIVE subtree AS (
+       SELECT id
+         FROM ddq_pack_item
+        WHERE parent_branch_item_id = $2
+          AND parent_branch_option_id = $3
+       UNION ALL
+       SELECT child.id
+         FROM ddq_pack_item child
+         JOIN subtree parent ON child.parent_branch_item_id = parent.id
+     )
+     DELETE FROM provider_ddq_checklist_branch_selection selection
+      USING subtree
+      WHERE selection.checklist_id = $1
+        AND selection.branch_pack_item_id = subtree.id`,
+    [checklistId, branchPackItemId, optionId],
+  );
+
+  await client.query(
+    `WITH RECURSIVE subtree AS (
+       SELECT id
+         FROM ddq_pack_item
+        WHERE parent_branch_item_id = $2
+          AND parent_branch_option_id = $3
+       UNION ALL
+       SELECT child.id
+         FROM ddq_pack_item child
+         JOIN subtree parent ON child.parent_branch_item_id = parent.id
+     )
+     DELETE FROM provider_ddq_checklist_task task
+      USING subtree
+      WHERE task.checklist_id = $1
+        AND task.ddq_pack_item_id = subtree.id`,
+    [checklistId, branchPackItemId, optionId],
+  );
 }
 
 export async function updateProviderDDQChecklistStatus(

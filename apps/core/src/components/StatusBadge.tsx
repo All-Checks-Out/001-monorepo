@@ -9,6 +9,7 @@ const statusClassName = {
   warning: "border-amber-200 bg-amber-100 text-amber-900",
   neutral: "border-transparent bg-secondary text-secondary-foreground",
   muted: "bg-background text-muted-foreground",
+  pending: "border-sky-200 bg-sky-100 text-sky-800",
   destructive: "border-transparent bg-destructive text-white",
 } as const;
 
@@ -21,7 +22,7 @@ const statusTone = {
   draft: "muted",
   failed: "destructive",
   invited: "muted",
-  pending: "warning",
+  pending: "pending",
   pending_upload: "warning",
   published: "success",
   rejected: "destructive",

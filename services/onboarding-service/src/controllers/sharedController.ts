@@ -6,6 +6,7 @@ import {
   requirePermission,
 } from "../services/currentUser";
 import {
+  getSubjectTypeMetadata as getSubjectTypeMetadataService,
   getMyAccessRequests as getMyAccessRequestsService,
   getMyUsers as getMyUsersService,
   inviteUserForMyCorporation,
@@ -95,5 +96,17 @@ export async function getMyAccessRequests(req: Request, res: Response) {
     res.json(result);
   } catch (error) {
     handleError(res, error, "Could not list access requests.");
+  }
+}
+
+export async function getSubjectTypes(req: Request, res: Response) {
+  const context = await getCurrentUserContext(req, res);
+  if (!context) return;
+
+  try {
+    const result = await getSubjectTypeMetadataService(context);
+    res.json(result);
+  } catch (error) {
+    handleError(res, error, "Could not list Subject types.");
   }
 }

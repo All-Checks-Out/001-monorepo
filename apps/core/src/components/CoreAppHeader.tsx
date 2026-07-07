@@ -135,6 +135,13 @@ function getCoreHeaderNavItems(context: HeaderNavContext): HeaderNavItem[] {
       label: "DDQ Packs",
       activePaths: toCoreShellPaths([CORE_ROUTES.providerDDQPacks]),
     });
+    if (context.hasPermission("provider-subjects:read")) {
+      navItems.push({
+        to: toCoreShellPath(CORE_ROUTES.providerSubjects),
+        label: "Subjects",
+        activePaths: toCoreShellPaths([CORE_ROUTES.providerSubjects]),
+      });
+    }
     if (
       context.hasPermission("provider-agent-requests:read") ||
       context.hasPermission("provider-stakeholder-requests:read")

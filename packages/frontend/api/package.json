@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "@frontend/auth": "workspace:*",
-    "@shared/permissions": "workspace:*"
+    "@shared/permissions": "workspace:*",
+    "@shared/subjects": "workspace:*"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

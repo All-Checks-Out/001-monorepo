@@ -21,10 +21,14 @@ import type {
   FormTemplateSchema,
   FormTemplateSummary,
   ProviderDDQChecklist,
+  ProviderDDQChecklistBranchSelection,
   ProviderDDQChecklistTask,
   ProviderDDQChecklistTaskEvidence,
   ProviderDDQChecklistTaskFormResponse,
   ProviderDDQPack,
+  Subject,
+  SubjectPayload,
+  SubjectType,
 } from "./types";
 import type { CorporationType, Permission } from "@shared/permissions";
 
@@ -81,8 +85,10 @@ type ReseedDemoDatabaseResponse = {
   corporationApplications: number;
   corporationAccessRequests: number;
   ddqPacks: number;
+  formTemplates: number;
   providerDDQPacks: number;
   providerDDQChecklists: number;
+  subjects: number;
 };
 
 type SeededFactoryResetDemoDataResponse = ReseedDemoDatabaseResponse & {
@@ -421,6 +427,24 @@ type ListProviderDDQPacksResponse = {
   packs: ProviderDDQPack[];
 };
 
+type ListSubjectTypesResponse = {
+  subjectTypes: SubjectType[];
+};
+
+type ListProviderSubjectsResponse = {
+  subjects: Subject[];
+};
+
+type SubjectResponse = {
+  subject: Subject;
+};
+
+export type ProviderSubjectFilters = {
+  subjectTypeKey?: string;
+  q?: string;
+  includeArchived?: boolean;
+};
+
 export type DDQPackPayload = {
   name: string;
   valid_from: string;
@@ -566,6 +590,69 @@ export const listProviderDDQPacks = async () => {
   );
 };
 
+export const listSubjectTypes = async () => {
+  return authJson<ListSubjectTypesResponse>(
+    "/auth/subject-types",
+    "Could not read Subject types.",
+  );
+};
+
+export const listProviderSubjects = async (
+  filters: ProviderSubjectFilters = {},
+) => {
+  const searchParams = new URLSearchParams();
+
+  if (filters.subjectTypeKey) {
+    searchParams.set("subject_type_key", filters.subjectTypeKey);
+  }
+  if (filters.q) {
+    searchParams.set("q", filters.q);
+  }
+  if (filters.includeArchived) {
+    searchParams.set("include_archived", "true");
+  }
+
+  const query = searchParams.toString();
+  return authJson<ListProviderSubjectsResponse>(
+    `/auth/provider/subjects${query ? `?${query}` : ""}`,
+    "Could not read Subjects.",
+  );
+};
+
+export const getProviderSubject = async (subjectId: number) => {
+  return authJson<SubjectResponse>(
+    `/auth/provider/subjects/${encodeURIComponent(subjectId)}`,
+    "Could not read Subject.",
+  );
+};
+
+export const createProviderSubject = async (payload: SubjectPayload) => {
+  return authJson<SubjectResponse>(
+    "/auth/provider/subjects",
+    "Could not create Subject.",
+    jsonPost(payload),
+  );
+};
+
+export const updateProviderSubject = async (
+  subjectId: number,
+  payload: SubjectPayload,
+) => {
+  return authJson<SubjectResponse>(
+    `/auth/provider/subjects/${encodeURIComponent(subjectId)}`,
+    "Could not update Subject.",
+    jsonRequest("PUT", payload),
+  );
+};
+
+export const archiveProviderSubject = async (subjectId: number) => {
+  return authJson<SubjectResponse>(
+    `/auth/provider/subjects/${encodeURIComponent(subjectId)}/archive`,
+    "Could not archive Subject.",
+    { method: "POST" },
+  );
+};
+
 export const listAvailableProviderDDQPacks = async () => {
   return authJson<ListDDQPacksResponse>(
     "/auth/provider/ddq-packs/available",
@@ -592,6 +679,7 @@ type ProviderDDQChecklistResponse = {
   pack: DDQPack;
   checklist: ProviderDDQChecklist;
   tasks: ProviderDDQChecklistTask[];
+  branchSelections: ProviderDDQChecklistBranchSelection[];
 };
 
 export type ProviderDDQChecklistTaskDetailResponse = {
@@ -662,6 +750,18 @@ export const changeProviderDDQChecklistTaskStatus = async (
   );
 };
 
+export const selectProviderDDQChecklistBranchOption = async (
+  packId: number,
+  branchTaskId: number,
+  optionId: string,
+) => {
+  return authJson<ProviderDDQChecklistResponse>(
+    `/auth/provider/ddq-packs/${encodeURIComponent(packId)}/checklist/branches/${encodeURIComponent(branchTaskId)}/selection`,
+    "Could not update branch selection.",
+    jsonRequest("PUT", { option_id: optionId }),
+  );
+};
+
 export const getProviderDDQChecklistTask = async (
   packId: number,
   taskId: number,
@@ -721,6 +821,14 @@ export const updateProviderDDQChecklistTaskEvidenceTags = async (
   );
 };
 
+const completeLocalDevEvidenceUpload = async (objectKey: string) => {
+  await publicJson<{ evidence: ProviderDDQChecklistTaskEvidence | null }>(
+    "/local-dev/evidence-uploads/complete",
+    "Could not complete local evidence upload.",
+    jsonPost({ object_key: objectKey }),
+  );
+};
+
 export const uploadProviderDDQChecklistTaskEvidence = async (
   packId: number,
   taskId: number,
@@ -748,6 +856,10 @@ export const uploadProviderDDQChecklistTaskEvidence = async (
 
   if (!uploadResponse.ok) {
     throw new Error("Could not upload checklist task evidence.");
+  }
+
+  if (config.isLocal) {
+    await completeLocalDevEvidenceUpload(uploadDetails.evidence.object_key);
   }
 
   return {

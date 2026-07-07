@@ -46,6 +46,14 @@ Start local infrastructure:
 pnpm run start:local
 ```
 
+If local startup or Playwright fails with Flyway migration checksum mismatches,
+reset the local database and rerun startup:
+
+```bash
+pnpm run database -- reset local
+pnpm run start:local
+```
+
 Run the backend:
 
 ```bash
@@ -167,6 +175,14 @@ pnpm run e2e-test:frontend:debug
 pnpm run test:all
 ```
 
+If `pnpm run e2e-test:frontend` fails during local startup with Flyway migration
+checksum mismatches, reset the local database first:
+
+```bash
+pnpm run database -- reset local
+pnpm run e2e-test:frontend
+```
+
 ---
 
 ## Database
@@ -239,13 +255,13 @@ pnpm run deploy -- production
 Testing:
 
 ```bash
-ACO24_SEED_USER_PASSWORD='<password>' pnpm run data -- seed testing
+ACO24_SEED_USER_PASSWORD='Pass44$$' pnpm run data -- seed testing
 ```
 
 Staging:
 
 ```bash
-ACO24_SEED_USER_PASSWORD='<password>' pnpm run data -- seed staging
+ACO24_SEED_USER_PASSWORD='Pass44$$' pnpm run data -- seed staging
 ```
 
 Production:

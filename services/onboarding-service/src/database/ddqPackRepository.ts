@@ -15,10 +15,14 @@ type PackInput = {
 };
 
 type ItemInput = {
+  clientId?: string;
   kind: DDQPackItemKind;
   taskType: DDQTaskType | null;
   title: string;
   config: Record<string, unknown>;
+  parentBranchItemId: number | null;
+  parentBranchOptionId: string | null;
+  parentBranchItemClientId?: string | null;
 };
 
 const packSelect = `
@@ -40,6 +44,8 @@ const itemSelect = `
          task_type,
          title,
          config,
+         parent_branch_item_id,
+         parent_branch_option_id,
          created_at::text AS created_at
     FROM ddq_pack_item
 `;
@@ -233,7 +239,12 @@ export async function deleteDDQPackForAssociation(
 
 export async function listDDQPackItems(client: Client, packId: number) {
   const result = await client.query<DDQPackItemRow>(
-    `${itemSelect} WHERE pack_id = $1 ORDER BY position`,
+    `${itemSelect}
+      WHERE pack_id = $1
+      ORDER BY COALESCE(parent_branch_item_id, 0),
+               COALESCE(parent_branch_option_id, ''),
+               position,
+               id`,
     [packId],
   );
 
@@ -254,7 +265,10 @@ export async function listDDQPackItemsForAssociation(
            WHERE ddq_pack.id = ddq_pack_item.pack_id
              AND ddq_pack.association_corporation_id = $2
         )
-      ORDER BY position`,
+      ORDER BY COALESCE(parent_branch_item_id, 0),
+               COALESCE(parent_branch_option_id, ''),
+               position,
+               id`,
     [packId, associationCorporationId],
   );
 
@@ -284,14 +298,35 @@ export async function createDDQPackItemForAssociation(
   const pack = await getDDQPackForAssociation(client, associationCorporationId, packId);
   if (!pack) return null;
 
-  const insertPosition = await getInsertPosition(client, packId, insertAfterItemId);
+  const insertPosition = await getInsertPosition(
+    client,
+    packId,
+    insertAfterItemId,
+    input.parentBranchItemId,
+    input.parentBranchOptionId,
+  );
   if (insertPosition === null) return null;
 
-  await shiftItemPositions(client, packId, insertPosition);
+  await shiftItemPositions(
+    client,
+    packId,
+    insertPosition,
+    input.parentBranchItemId,
+    input.parentBranchOptionId,
+  );
 
   const result = await client.query<DDQPackItemRow>(
-    `INSERT INTO ddq_pack_item (pack_id, position, kind, task_type, title, config)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO ddq_pack_item (
+       pack_id,
+       position,
+       kind,
+       task_type,
+       title,
+       config,
+       parent_branch_item_id,
+       parent_branch_option_id
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING id,
                pack_id,
                position,
@@ -299,6 +334,8 @@ export async function createDDQPackItemForAssociation(
                task_type,
                title,
                config,
+               parent_branch_item_id,
+               parent_branch_option_id,
                created_at::text AS created_at`,
     [
       packId,
@@ -307,6 +344,8 @@ export async function createDDQPackItemForAssociation(
       input.taskType,
       input.title,
       JSON.stringify(input.config),
+      input.parentBranchItemId,
+      input.parentBranchOptionId,
     ],
   );
 
@@ -325,7 +364,9 @@ export async function updateDDQPackItemForAssociation(
         SET kind = $4,
             task_type = $5,
             title = $6,
-            config = $7
+            config = $7,
+            parent_branch_item_id = $8,
+            parent_branch_option_id = $9
       WHERE pack_id = $1
         AND id = $2
         AND EXISTS (
@@ -341,6 +382,8 @@ export async function updateDDQPackItemForAssociation(
                 task_type,
                 title,
                 config,
+                parent_branch_item_id,
+                parent_branch_option_id,
                 created_at::text AS created_at`,
     [
       packId,
@@ -350,6 +393,8 @@ export async function updateDDQPackItemForAssociation(
       input.taskType,
       input.title,
       JSON.stringify(input.config),
+      input.parentBranchItemId,
+      input.parentBranchOptionId,
     ],
   );
 
@@ -376,8 +421,15 @@ export async function deleteDDQPackItemForAssociation(
     `UPDATE ddq_pack_item
         SET position = position - 1
       WHERE pack_id = $1
+        AND parent_branch_item_id IS NOT DISTINCT FROM $3
+        AND parent_branch_option_id IS NOT DISTINCT FROM $4
         AND position > $2`,
-    [packId, existing.position],
+    [
+      packId,
+      existing.position,
+      existing.parent_branch_item_id,
+      existing.parent_branch_option_id,
+    ],
   );
 
   return true;
@@ -394,34 +446,119 @@ export async function replaceDDQPackItemsForAssociation(
 
   await client.query("DELETE FROM ddq_pack_item WHERE pack_id = $1", [packId]);
 
-  for (const [index, item] of items.entries()) {
-    await client.query(
-      `INSERT INTO ddq_pack_item (pack_id, position, kind, task_type, title, config)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+  const pendingItems = items.map((item, index) => ({ item, index }));
+  const insertedBranchIdsByClientId = new Map<string, number>();
+  const nextPositionByParent = new Map<string, number>();
+
+  while (pendingItems.length > 0) {
+    const pendingCountBeforePass = pendingItems.length;
+
+    for (let index = 0; index < pendingItems.length;) {
+      const pending = pendingItems[index];
+      const parentBranchItemId =
+        pending.item.parentBranchItemClientId
+          ? insertedBranchIdsByClientId.get(pending.item.parentBranchItemClientId)
+          : pending.item.parentBranchItemId;
+
+      if (pending.item.parentBranchItemClientId && !parentBranchItemId) {
+        index += 1;
+        continue;
+      }
+
+      const insertedId = await insertReplacementDDQPackItem(
+        client,
+        packId,
+        pending.item,
+        parentBranchItemId ?? null,
+        nextPositionByParent,
+      );
+
+      if (pending.item.kind === "branch" && pending.item.clientId) {
+        insertedBranchIdsByClientId.set(pending.item.clientId, insertedId);
+      }
+
+      pendingItems.splice(index, 1);
+    }
+
+    if (pendingItems.length === pendingCountBeforePass) {
+      throw new Error("DDQ pack draft contains branch children before their parent branch.");
+    }
+  }
+
+  return true;
+}
+
+async function insertReplacementDDQPackItem(
+  client: Client,
+  packId: number,
+  item: ItemInput,
+  parentBranchItemId: number | null,
+  nextPositionByParent: Map<string, number>,
+) {
+    const parentKey = siblingKey(parentBranchItemId, item.parentBranchOptionId);
+    const position = (nextPositionByParent.get(parentKey) ?? 0) + 1;
+    nextPositionByParent.set(parentKey, position);
+
+    const result = await client.query<{ id: number }>(
+      `INSERT INTO ddq_pack_item (
+         pack_id,
+         position,
+         kind,
+         task_type,
+         title,
+         config,
+         parent_branch_item_id,
+         parent_branch_option_id
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
       [
         packId,
-        index + 1,
+        position,
         item.kind,
         item.taskType,
         item.title,
         JSON.stringify(item.config),
+        parentBranchItemId,
+        item.parentBranchOptionId,
       ],
     );
-  }
 
-  return true;
+  return result.rows[0].id;
 }
 
 async function getInsertPosition(
   client: Client,
   packId: number,
   insertAfterItemId: number | null,
+  parentBranchItemId: number | null,
+  parentBranchOptionId: string | null,
 ) {
-  if (insertAfterItemId === null) return 1;
+  if (insertAfterItemId === null) {
+    const result = await client.query<{ position: number | null }>(
+      `SELECT MAX(position) AS position
+         FROM ddq_pack_item
+        WHERE pack_id = $1
+          AND parent_branch_item_id IS NOT DISTINCT FROM $2
+          AND parent_branch_option_id IS NOT DISTINCT FROM $3`,
+      [packId, parentBranchItemId, parentBranchOptionId],
+    );
+    return (result.rows[0]?.position ?? 0) + 1;
+  }
 
-  const result = await client.query<Pick<DDQPackItemRow, "position">>(
-    "SELECT position FROM ddq_pack_item WHERE pack_id = $1 AND id = $2",
-    [packId, insertAfterItemId],
+  const result = await client.query<
+    Pick<
+      DDQPackItemRow,
+      "position" | "parent_branch_item_id" | "parent_branch_option_id"
+    >
+  >(
+    `SELECT position, parent_branch_item_id, parent_branch_option_id
+       FROM ddq_pack_item
+      WHERE pack_id = $1
+        AND id = $2
+        AND parent_branch_item_id IS NOT DISTINCT FROM $3
+        AND parent_branch_option_id IS NOT DISTINCT FROM $4`,
+    [packId, insertAfterItemId, parentBranchItemId, parentBranchOptionId],
   );
   const item = result.rows[0];
 
@@ -433,6 +570,8 @@ async function shiftItemPositions(
   client: Client,
   packId: number,
   insertPosition: number | null,
+  parentBranchItemId: number | null,
+  parentBranchOptionId: string | null,
 ) {
   if (insertPosition === null) return;
 
@@ -440,7 +579,16 @@ async function shiftItemPositions(
     `UPDATE ddq_pack_item
         SET position = position + 1
       WHERE pack_id = $1
+        AND parent_branch_item_id IS NOT DISTINCT FROM $3
+        AND parent_branch_option_id IS NOT DISTINCT FROM $4
         AND position >= $2`,
-    [packId, insertPosition],
+    [packId, insertPosition, parentBranchItemId, parentBranchOptionId],
   );
+}
+
+function siblingKey(
+  parentBranchItemId: number | null,
+  parentBranchOptionId: string | null,
+) {
+  return `${parentBranchItemId ?? "root"}:${parentBranchOptionId ?? "root"}`;
 }

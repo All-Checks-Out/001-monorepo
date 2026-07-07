@@ -3,11 +3,13 @@ import { z } from "zod";
 import { handleError, parseBody, parseId } from "./http";
 import { requireProviderUser } from "../services/currentUser";
 import {
+  archiveProviderSubject as archiveProviderSubjectService,
   addProviderDDQPack as addProviderDDQPackService,
   approveProviderCorporationApplication as approveProviderCorporationApplicationService,
   changeProviderDDQChecklistStatus as changeProviderDDQChecklistStatusService,
   changeProviderDDQChecklistTaskStatus as changeProviderDDQChecklistTaskStatusService,
   completeProviderDDQChecklistTaskFormResponse as completeProviderDDQChecklistTaskFormResponseService,
+  createProviderSubject as createProviderSubjectService,
   createProviderDDQChecklistTaskEvidenceUploadUrl as createProviderDDQChecklistTaskEvidenceUploadUrlService,
   decideProviderAccessRequest,
   getAvailableProviderDDQPacks as getAvailableProviderDDQPacksService,
@@ -18,8 +20,12 @@ import {
   getProviderDDQPacks as getProviderDDQPacksService,
   getProviderCorporationApplications as getProviderCorporationApplicationsService,
   getProviderAccessRequests as getProviderAccessRequestsService,
+  getProviderSubject as getProviderSubjectService,
+  getProviderSubjects as getProviderSubjectsService,
   rejectProviderCorporationApplication as rejectProviderCorporationApplicationService,
   saveProviderDDQChecklistTaskFormResponse as saveProviderDDQChecklistTaskFormResponseService,
+  selectProviderDDQChecklistBranchOption as selectProviderDDQChecklistBranchOptionService,
+  updateProviderSubject as updateProviderSubjectService,
   updateProviderDDQChecklistTaskEvidenceTags as updateProviderDDQChecklistTaskEvidenceTagsService,
 } from "../services/onboardingService";
 
@@ -29,6 +35,10 @@ const providerDDQPackBodySchema = z.object({
 
 const ddqChecklistStatusBodySchema = z.object({
   action: z.enum(["complete", "withdraw", "restore", "reopen"]),
+});
+
+const ddqBranchSelectionBodySchema = z.object({
+  option_id: z.string().trim().min(1),
 });
 
 const evidenceUploadUrlBodySchema = z.object({
@@ -42,10 +52,29 @@ const evidenceTagsBodySchema = z.object({
   tags: z.array(z.string()),
 });
 
-const formValueSchema = z.union([z.string(), z.boolean(), z.null()]);
+const formScalarValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const subjectTableRowValueSchema = z.record(z.string(), formScalarValueSchema);
+const subjectEntryValueSchema = z.record(
+  z.string(),
+  z.union([formScalarValueSchema, z.array(subjectTableRowValueSchema)]),
+);
+const formValueSchema = z.union([
+  formScalarValueSchema,
+  z.array(subjectEntryValueSchema),
+]);
 
 const formResponseBodySchema = z.object({
   values: z.record(z.string(), formValueSchema),
+});
+
+const subjectValueSchema = z.union([
+  formScalarValueSchema,
+  z.array(subjectTableRowValueSchema),
+]);
+
+const subjectBodySchema = z.object({
+  subject_type_key: z.string().trim().min(1),
+  values: z.record(z.string(), subjectValueSchema),
 });
 
 export async function getProviderAccessRequests(req: Request, res: Response) {
@@ -81,6 +110,91 @@ export async function listProviderDDQPacks(req: Request, res: Response) {
     res.json(result);
   } catch (error) {
     handleError(res, error, "Could not list DDQ Packs.");
+  }
+}
+
+export async function listProviderSubjects(req: Request, res: Response) {
+  const context = await requireProviderUser(req, res);
+  if (!context) return;
+
+  try {
+    const result = await getProviderSubjectsService(context, {
+      subjectTypeKey: stringQuery(req.query.subject_type_key),
+      q: stringQuery(req.query.q),
+      includeArchived: req.query.include_archived === "true",
+    });
+    res.json(result);
+  } catch (error) {
+    handleError(res, error, "Could not list Subjects.");
+  }
+}
+
+export async function readProviderSubject(req: Request, res: Response) {
+  const context = await requireProviderUser(req, res);
+  if (!context) return;
+
+  const subjectId = parseNamedId(req, res, "subjectId");
+  if (subjectId === null) return;
+
+  try {
+    const result = await getProviderSubjectService(context, subjectId);
+    res.json(result);
+  } catch (error) {
+    handleError(res, error, "Could not read Subject.");
+  }
+}
+
+export async function createProviderSubject(req: Request, res: Response) {
+  const context = await requireProviderUser(req, res);
+  if (!context) return;
+
+  const body = parseBody(req, res, subjectBodySchema);
+  if (!body) return;
+
+  try {
+    const result = await createProviderSubjectService(context, {
+      subjectTypeKey: body.subject_type_key,
+      values: body.values,
+    });
+    res.status(201).json(result);
+  } catch (error) {
+    handleError(res, error, "Could not create Subject.");
+  }
+}
+
+export async function updateProviderSubject(req: Request, res: Response) {
+  const context = await requireProviderUser(req, res);
+  if (!context) return;
+
+  const subjectId = parseNamedId(req, res, "subjectId");
+  if (subjectId === null) return;
+
+  const body = parseBody(req, res, subjectBodySchema);
+  if (!body) return;
+
+  try {
+    const result = await updateProviderSubjectService(context, subjectId, {
+      subjectTypeKey: body.subject_type_key,
+      values: body.values,
+    });
+    res.json(result);
+  } catch (error) {
+    handleError(res, error, "Could not update Subject.");
+  }
+}
+
+export async function archiveProviderSubject(req: Request, res: Response) {
+  const context = await requireProviderUser(req, res);
+  if (!context) return;
+
+  const subjectId = parseNamedId(req, res, "subjectId");
+  if (subjectId === null) return;
+
+  try {
+    const result = await archiveProviderSubjectService(context, subjectId);
+    res.json(result);
+  } catch (error) {
+    handleError(res, error, "Could not archive Subject.");
   }
 }
 
@@ -201,6 +315,35 @@ export async function changeProviderDDQChecklistTaskStatus(req: Request, res: Re
     res.json(result);
   } catch (error) {
     handleError(res, error, "Could not update DDQ Checklist Task status.");
+  }
+}
+
+export async function selectProviderDDQChecklistBranchOption(
+  req: Request,
+  res: Response,
+) {
+  const context = await requireProviderUser(req, res);
+  if (!context) return;
+
+  const packId = parseNamedId(req, res, "packId");
+  if (packId === null) return;
+
+  const branchTaskId = parseNamedId(req, res, "branchTaskId");
+  if (branchTaskId === null) return;
+
+  const body = parseBody(req, res, ddqBranchSelectionBodySchema);
+  if (!body) return;
+
+  try {
+    const result = await selectProviderDDQChecklistBranchOptionService(
+      context,
+      packId,
+      branchTaskId,
+      body.option_id,
+    );
+    res.json(result);
+  } catch (error) {
+    handleError(res, error, "Could not update branch selection.");
   }
 }
 
@@ -416,4 +559,10 @@ function parseNamedId(req: Request, res: Response, name: string) {
   }
 
   return id;
+}
+
+function stringQuery(value: unknown) {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed || undefined;
 }

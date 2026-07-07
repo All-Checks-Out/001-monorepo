@@ -14,6 +14,15 @@ vi.mock("@frontend/auth/session/ThemeProvider", () => ({
   useTheme: () => ({ dark: false }),
 }));
 
+vi.mock("@frontend/api/onboarding/client", () => ({
+  archiveProviderSubject: vi.fn(),
+  createProviderSubject: vi.fn(),
+  getProviderSubject: vi.fn(),
+  listProviderSubjects: vi.fn(),
+  listSubjectTypes: vi.fn(),
+  updateProviderSubject: vi.fn(),
+}));
+
 vi.mock("./context/CurrentUserContext", () => ({
   useCurrentUser: vi.fn(),
 }));
@@ -53,6 +62,12 @@ vi.mock("./pages/ProviderDirectory", () => ({
 }));
 vi.mock("./pages/ProviderSetupRequests", () => ({
   default: () => <span>Provider setup requests page</span>,
+}));
+vi.mock("./pages/ProviderSubjectDetail", () => ({
+  default: () => <span>Provider subject detail page</span>,
+}));
+vi.mock("./pages/ProviderSubjects", () => ({
+  default: () => <span>Provider subjects page</span>,
 }));
 vi.mock("./pages/UsersPage", () => ({
   default: () => <span>Users page</span>,
@@ -110,6 +125,24 @@ const protectedRoutes: ProtectedRouteCase[] = [
     path: "/provider/ddq-packs/1/checklist/tasks/2",
     text: "Provider DDQ task page",
     corporationTypes: ["PROVIDER"],
+  },
+  {
+    path: "/provider/subjects",
+    text: "Provider subjects page",
+    corporationTypes: ["PROVIDER"],
+    permissions: ["provider-subjects:read"],
+  },
+  {
+    path: "/provider/subjects/1",
+    text: "Provider subject detail page",
+    corporationTypes: ["PROVIDER"],
+    permissions: ["provider-subjects:read"],
+  },
+  {
+    path: "/provider/subjects/new",
+    text: "Provider subject detail page",
+    corporationTypes: ["PROVIDER"],
+    permissions: ["provider-subjects:read"],
   },
   {
     path: "/provider/users",

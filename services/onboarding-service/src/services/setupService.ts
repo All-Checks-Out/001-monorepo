@@ -8,6 +8,7 @@ import {
   seedFormTemplates,
   seedProviderDDQChecklists,
   seedProviderDDQPacks,
+  seedSubjects,
   seedUsers,
 } from "../database/seedDataRepository";
 import {
@@ -99,6 +100,7 @@ async function seedDemoDatabase(
         return getCognitoSub({ email });
       },
     );
+    await seedSubjects(client, fixture, corporationIdMap);
     await seedApplications(client, fixture, corporationIdMap);
     await seedAccessRequests(client, fixture, corporationIdMap);
     const { ddqPackIdMap, ddqPackItemIdMap } = await seedDDQPacks(
@@ -130,6 +132,7 @@ async function seedDemoDatabase(
       formTemplates: fixture.formTemplates.length,
       providerDDQPacks: fixture.providerDDQPacks.length,
       providerDDQChecklists: fixture.providerDDQChecklists.length,
+      subjects: fixture.subjects.length,
     };
   } catch (error) {
     await client.query("ROLLBACK");

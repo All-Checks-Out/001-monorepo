@@ -13,6 +13,10 @@ export function FormFieldControl({
   disabled: boolean;
   onChange: (value: FormValue | undefined) => void;
 }) {
+  if (item.type === "subject") {
+    return null;
+  }
+
   if (item.type === "textarea") {
     return (
       <Textarea

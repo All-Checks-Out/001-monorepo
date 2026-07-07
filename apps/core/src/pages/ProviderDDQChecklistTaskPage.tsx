@@ -106,6 +106,40 @@ function validateFormDocumentValues(document: FormDocument) {
     }
     if (!hasValue) continue;
 
+    if (item.type === "subject") {
+      if (!Array.isArray(value)) {
+        errors[item.id] = "Enter valid Subject entries.";
+        continue;
+      }
+
+      let hasEntryErrors = false;
+      for (const [entryIndex, entry] of value.entries()) {
+        for (const selection of item.selectedProperties) {
+          const entryValue = entry[selection.key];
+
+          if ("columns" in selection) {
+            if (entryValue !== undefined && !Array.isArray(entryValue)) {
+              errors[subjectGroupErrorKey(item.id, entryIndex, selection.key)] =
+                "Enter valid rows.";
+              hasEntryErrors = true;
+            }
+            continue;
+          }
+
+          if (!hasFormValue(entryValue)) {
+            errors[subjectGroupErrorKey(item.id, entryIndex, selection.key)] =
+              "This field is required.";
+            hasEntryErrors = true;
+          }
+        }
+      }
+
+      if (hasEntryErrors) {
+        errors[item.id] = "Complete the highlighted Subject fields.";
+      }
+      continue;
+    }
+
     if (item.type === "boolean") {
       if (typeof value !== "boolean") errors[item.id] = "Enter yes or no.";
       continue;
@@ -129,7 +163,12 @@ function validateFormDocumentValues(document: FormDocument) {
 function hasFormValue(value: FormValue | undefined) {
   if (value === undefined || value === null) return false;
   if (typeof value === "string") return value.trim().length > 0;
-  return typeof value === "boolean";
+  if (Array.isArray(value)) return value.length > 0;
+  return typeof value === "number" || typeof value === "boolean";
+}
+
+function subjectGroupErrorKey(itemId: string, entryIndex: number, attributeKey: string) {
+  return `${itemId}.${entryIndex}.${attributeKey}`;
 }
 
 function sameFormValues(left: FormValues, right: FormValues) {
@@ -160,6 +199,7 @@ export const ProviderDDQChecklistTaskPage = () => {
     canPerformChecklist ||
     hasPermission("provider-ddq-packs:review-checks") ||
     hasPermission("provider-ddq-packs:approve-checks");
+  const canReadSubjects = hasPermission("provider-subjects:read");
 
   const [state, setState] =
     useState<ProviderDDQChecklistTaskDetailResponse | null>(null);
@@ -331,7 +371,8 @@ export const ProviderDDQChecklistTaskPage = () => {
       setFile(null);
       setTagInput("");
       setTags(manualTags(result.evidence));
-      setMessage("Evidence uploaded. The task will update after S3 confirms the upload.");
+      await load();
+      setMessage("Evidence uploaded.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not upload evidence.");
     } finally {
@@ -473,7 +514,13 @@ export const ProviderDDQChecklistTaskPage = () => {
               checklist={checklist}
               task={task}
               canPerformChecklist={canPerformChecklist}
+              canReadSubjects={canReadSubjects}
               onChange={setFormValue}
+              onAutofill={(nextValues) => {
+                setFormValues(nextValues);
+                setMessage("");
+                setError("");
+              }}
               onReset={resetDraft}
               onSave={saveFormProgress}
               onComplete={completeFormResponse}
